@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Reliable_Reservations_MVC
 {
     public class Program
@@ -8,6 +10,7 @@ namespace Reliable_Reservations_MVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddHttpClient();
 
             var app = builder.Build();
 

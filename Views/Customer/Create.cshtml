@@ -1,0 +1,24 @@
+﻿@model CustomerCreateViewModel
+
+<h1>Register new customer</h1>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label>First Name</label>
+        <input asp-for=FirstName class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Last Name</label>
+        <input asp-for=LastName class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Phone number</label>
+        <input asp-for=PhoneNumber class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>E-mail</label>
+        <input asp-for=Email class="form-control /">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
