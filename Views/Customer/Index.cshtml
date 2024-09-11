@@ -6,6 +6,14 @@
         <div class="card-body">
             <h5 class="card-title">@customer.FirstName @customer.LastName</h5>
             <p class="card-text">@customer.Email</p>
+            <a asp-controller="Customer" asp-action="Edit" asp-route-id=@customer.CustomerId class="btn btn-warning">Edit</a>
+            @* <a asp-controller="Customer" asp-action="Delete" asp-route-id=@customer.CustomerId class="btn btn-danger">Delete</a> *@
+            <form method="post" asp-action="Delete" style="display:inline;">
+                <input type="hidden" name="id" value="@customer.CustomerId" />
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
         </div>
     </div>
 }
+ 
+<a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>

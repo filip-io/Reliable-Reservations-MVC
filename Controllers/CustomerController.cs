@@ -74,5 +74,39 @@ namespace Reliable_Reservations_MVC.Controllers
 
             return NotFound();
         }
+
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            var response = await _client.GetAsync($"{_baseUri}api/Customer/{id}");
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var customer = JsonConvert.DeserializeObject<CustomerEditViewModel>(json);
+
+            return View(customer);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(Customer customer)
+        {
+            var json = JsonConvert.SerializeObject(customer);
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            await _client.PutAsync($"{_baseUri}api/Customer/{customer.CustomerId}", content);
+
+            return RedirectToAction("Index");
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var response = await _client.DeleteAsync($"{_baseUri}api/Customer/{id}");
+
+            return RedirectToAction("Index");
+        }
     }
 }

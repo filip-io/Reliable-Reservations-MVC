@@ -1,17 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Reliable_Reservations_MVC.Models
 {
-    public class CustomerCreateViewModel
+    public class CustomerEditViewModel
     {
+        [HiddenInput(DisplayValue = false)]
+        public int CustomerId { get; set; }
+
         [Required(ErrorMessage = "First name is required")]
         public string FirstName { get; set; }
 
         [Required(ErrorMessage = "Last name is required")]
         public string LastName { get; set; }
 
-        [Required]
-        [Phone(ErrorMessage = "Not a valid phone number.")]
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone]
         public string PhoneNumber { get; set; }
 
         [Required]
