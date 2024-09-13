@@ -1,19 +1,37 @@
-﻿@model List<Customer>
+﻿@model List<Reliable_Reservations_MVC.Models.Customer.CustomerViewModel>
 
-@foreach(var customer in Model)
+<h1>@ViewData["Title"]</h1>
+
+@if (ViewData["ResponseError"] != null)
 {
-    <div class="card" style="width:26rem">
-        <div class="card-body">
-            <h5 class="card-title">@customer.FirstName @customer.LastName</h5>
-            <p class="card-text">@customer.Email</p>
-            <a asp-controller="Customer" asp-action="Edit" asp-route-id=@customer.CustomerId class="btn btn-warning">Edit</a>
-            @* <a asp-controller="Customer" asp-action="Delete" asp-route-id=@customer.CustomerId class="btn btn-danger">Delete</a> *@
-            <form method="post" asp-action="Delete" style="display:inline;">
-                <input type="hidden" name="id" value="@customer.CustomerId" />
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-        </div>
-    </div>
+    <p class="alert alert-danger">@ViewData["ResponseError"]</p>
 }
- 
-<a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>
+else if (Model == null || !Model.Any())
+{
+    <p>No registered customers exist.</p>
+    <br />
+    <a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>
+}
+else
+{
+    @foreach (var customer in Model)
+    {
+        <div class="card" style="width:26rem; margin-bottom: 10px;">
+            <div class="card-body">
+                <h5 class="card-title">@customer.FirstName @customer.LastName</h5>
+                <p class="card-text">@customer.Email</p>
+
+                <a asp-controller="Customer" asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-info">Details</a>
+                <a asp-controller="Customer" asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-warning">Edit</a>
+
+                <form method="post" asp-action="Delete" style="display:inline;">
+                    <input type="hidden" name="id" value="@customer.CustomerId" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    }
+
+    <br />
+    <a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>
+}

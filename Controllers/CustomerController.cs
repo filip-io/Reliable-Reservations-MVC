@@ -1,17 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Reliable_Reservations_MVC.Models;
+using Reliable_Reservations_MVC.Models.Customer;
 using System.Text;
 
 namespace Reliable_Reservations_MVC.Controllers
 {
     public class CustomerController : Controller
     {
+        private readonly ILogger<CustomerController> _logger;
         private readonly HttpClient _client;
         private readonly string? _baseUri;
 
-        public CustomerController(HttpClient httpClient, IConfiguration configuration)
+        public CustomerController(ILogger<CustomerController> logger, HttpClient httpClient, IConfiguration configuration)
         {
+            _logger = logger;
             _client = httpClient;
             _baseUri = configuration["ApiSettings:BaseUri"];
         }
@@ -20,13 +22,35 @@ namespace Reliable_Reservations_MVC.Controllers
         {
             ViewData["Title"] = "Registered customers";
 
-            var response = await _client.GetAsync($"{_baseUri}api/Customer/all");
+            try
+            {
+                var response = await _client.GetAsync($"{_baseUri}api/Customer/all");
 
-            var json = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
 
-            var customerList = JsonConvert.DeserializeObject<List<Customer>>(json);
+                    var customerList = JsonConvert.DeserializeObject<List<CustomerViewModel>>(json);
 
-            return View(customerList);
+                    if (customerList == null || !customerList.Any())
+                    {
+                        return View(new List<CustomerViewModel>());
+                    }
+                    return View(customerList);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Error reaching the API.");
+                ViewData["ResponseError"] = "Unable to reach the API. Please try again later.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred.");
+                ViewData["ResponseError"] = "An unexpected error occurred. Please try again later.";
+            }
+
+            return View(new List<CustomerViewModel>());
         }
 
 
@@ -39,9 +63,9 @@ namespace Reliable_Reservations_MVC.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Create(CustomerCreateViewModel customer)
+        public async Task<IActionResult> Create(CustomerCreateViewModel customerCreateViewModel)
         {
-            var json = JsonConvert.SerializeObject(customer);
+            var json = JsonConvert.SerializeObject(customerCreateViewModel);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _client.PostAsync($"{_baseUri}api/Customer/create", content);
@@ -49,14 +73,29 @@ namespace Reliable_Reservations_MVC.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var createdCustomer = JsonConvert.DeserializeObject<Customer>(jsonResponse);
+                var createdCustomer = JsonConvert.DeserializeObject<CustomerViewModel>(jsonResponse);
 
-                return RedirectToAction("Details", new { id = createdCustomer.CustomerId });
+                return RedirectToAction("New", new { id = createdCustomer?.CustomerId });
             }
 
-            // In case of failure, return to the Create view with an error message
             ModelState.AddModelError("", "Error creating customer.");
-            return View(customer);
+            return View(customerCreateViewModel);
+        }
+
+
+        public async Task<IActionResult> New(int id)
+        {
+            var response = await _client.GetAsync($"{_baseUri}api/Customer/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var customer = JsonConvert.DeserializeObject<CustomerViewModel>(jsonResponse);
+
+                return View(customer);
+            }
+
+            return NotFound();
         }
 
 
@@ -67,7 +106,7 @@ namespace Reliable_Reservations_MVC.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var customer = JsonConvert.DeserializeObject<Customer>(jsonResponse);
+                var customer = JsonConvert.DeserializeObject<CustomerViewModel>(jsonResponse);
 
                 return View(customer);
             }
@@ -89,13 +128,17 @@ namespace Reliable_Reservations_MVC.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Customer customer)
+        public async Task<IActionResult> Edit(CustomerEditViewModel customerEditViewModel)
         {
-            var json = JsonConvert.SerializeObject(customer);
+            if (!ModelState.IsValid)
+            {
+                return View(customerEditViewModel); // Return the model and validation error messages
+            }
+            var json = JsonConvert.SerializeObject(customerEditViewModel);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            await _client.PutAsync($"{_baseUri}api/Customer/{customer.CustomerId}", content);
+            await _client.PutAsync($"{_baseUri}api/Customer/{customerEditViewModel.CustomerId}", content);
 
             return RedirectToAction("Index");
         }
