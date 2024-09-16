@@ -1,0 +1,32 @@
+﻿@using System.Globalization
+@model IEnumerable<Reliable_Reservations_MVC.Models.Menu.MenuItemViewModel>
+
+@if (Model.Any())
+{
+    @foreach (var categoryGroup in Model.GroupBy(item => item.Category))
+    {
+        <div class="text-center mb-5">
+            <h2>@categoryGroup.Key</h2>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center mb-5">
+            @foreach (var menuItem in categoryGroup)
+            {
+                <div class="card m-2" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">@menuItem.Name</h5>
+                        <p class="card-text">@menuItem.Description</p>
+                        <p class="card-text">@menuItem.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <hr class="my-5" />
+    }
+}
+else
+{
+    <p>No menu items match the criteria.</p>
+}
+

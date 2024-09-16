@@ -2,6 +2,15 @@
 
 <h1>@ViewData["Title"]</h1>
 
+
+@if (TempData["SuccessMessage"] != null)
+{
+<div class="alert alert-success">
+    @TempData["SuccessMessage"]
+</div>
+}
+
+
 @if (ViewData["ResponseError"] != null)
 {
     <p class="alert alert-danger">@ViewData["ResponseError"]</p>

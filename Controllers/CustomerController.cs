@@ -65,6 +65,8 @@ namespace Reliable_Reservations_MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel customerCreateViewModel)
         {
+            // Post/Redirect/Get (PRG) Pattern with TempData
+
             var json = JsonConvert.SerializeObject(customerCreateViewModel);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -75,28 +77,15 @@ namespace Reliable_Reservations_MVC.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var createdCustomer = JsonConvert.DeserializeObject<CustomerViewModel>(jsonResponse);
 
-                return RedirectToAction("New", new { id = createdCustomer?.CustomerId });
+                TempData["SuccessMessage"] = $"Successfully created new customer {createdCustomer?.FirstName} {createdCustomer?.LastName} with ID: {createdCustomer?.CustomerId}!";
+
+                return RedirectToAction("Index");
             }
 
             ModelState.AddModelError("", "Error creating customer.");
             return View(customerCreateViewModel);
         }
 
-
-        public async Task<IActionResult> New(int id)
-        {
-            var response = await _client.GetAsync($"{_baseUri}api/Customer/{id}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var customer = JsonConvert.DeserializeObject<CustomerViewModel>(jsonResponse);
-
-                return View(customer);
-            }
-
-            return NotFound();
-        }
 
 
         public async Task<IActionResult> Details(int id)

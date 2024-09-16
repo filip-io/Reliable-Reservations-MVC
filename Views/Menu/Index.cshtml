@@ -1,0 +1,44 @@
+﻿@using System.Globalization
+@model List<Reliable_Reservations_MVC.Models.Menu.MenuItemViewModel>
+
+<div class="text-center my-5">
+    <h1>@ViewData["Title"]</h1>
+</div>
+
+<hr class="my-5" />
+
+@if (ViewData["ResponseError"] != null)
+{
+    <p class="alert alert-danger text-center">@ViewData["ResponseError"]</p>
+}
+else if (Model == null || !Model.Any())
+{
+    <p class="text-center">No menu items exist. Check back later!</p>
+}
+else
+{
+    @foreach (var categoryGroup in Model.GroupBy(item => item.Category))
+    {
+        <div class="text-center mb-5">
+            <!-- Add bottom margin to separate categories -->
+            <h2>@categoryGroup.Key</h2> <!-- Center the category name -->
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-center mb-5">
+            <!-- Center items horizontally -->
+            @foreach (var menuItem in categoryGroup)
+            {
+                <div class="card m-2" style="width: 18rem;">
+                    <!-- Flexbox item with fixed height -->
+                    <div class="card-body">
+                        <h5 class="card-title">@menuItem.Name</h5>
+                        <p class="card-text">@menuItem.Description</p>
+                        <p class="card-text">@menuItem.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <hr class="my-5" /> <!-- Add vertical margins to the separator -->
+    }
+}

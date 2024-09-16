@@ -1,20 +1,27 @@
-﻿@model IEnumerable<Reliable_Reservations_MVC.Models.Menu.MenuItemViewModel>
+﻿@using System.Globalization
+@model IEnumerable<Reliable_Reservations_MVC.Models.Menu.MenuItemViewModel>
 
 @{
     ViewData["Title"] = "Welcome";
 }
 
 <div class="text-center">
+    
     <h1 class="display-4">Magnificent</h1>
     <h1 class="display-4">Restaurant</h1>
+    
     <p>A culinary experience beyond anything you've ever experienced.</p>
+    <br />
     <img src="img/logo.webp" style="object-fit: cover; width: 300px; height: 300px;" />
 
-    <h2>Popular Dishes</h2>
+    <hr class="my-5" />
+
+    <h2>Popular dishes</h2>
+    <br />
     <ul>
         @foreach (var item in Model)
         {
-            <p>@item.Category - @item.Name - @item.Price</p>
+            <p>@item.Category - @item.Name - @item.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</p>
         }
     </ul>
 
