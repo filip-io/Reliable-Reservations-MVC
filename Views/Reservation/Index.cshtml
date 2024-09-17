@@ -1,4 +1,4 @@
-﻿@model List<Reliable_Reservations_MVC.Models.Customer.CustomerViewModel>
+﻿@model List<Reliable_Reservations_MVC.Models.Reservation.ReservationDetailsViewModel>
 
 <h1>@ViewData["Title"]</h1>
 
@@ -15,29 +15,30 @@
 }
 else if (Model == null || !Model.Any())
 {
-    <p>No registered customers exist.</p>
+    <p>No reservations exist.</p>
     <br />
-    <a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>
+    <a asp-action="Create" asp-controller="Reservation" class="btn btn-primary">New reservation</a>
 }
 else
 {
-    @foreach (var customer in Model)
+    @foreach (var reservation in Model)
     {
-        <div class="card" style="width:26rem; margin-bottom: 10px;">
+        <div class="card" style="width:26 rem; margin-bottom: 10px;">
             <div class="card-body">
-                <h5 class="card-title">@customer.FirstName @customer.LastName</h5>
-                <p class="card-text">@customer.Email</p>
+                <h5 class="card-title">@reservation.ReservationDate</h5>
+                <h5>@reservation.Customer.FirstName @reservation.Customer.LastName</h5>
+                <p class="card-text">@reservation.Status</p>
 
-                <a asp-controller="Customer" asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-info">Details</a>
-                <a asp-controller="Customer" asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-warning">Edit</a>
+                <a asp-controller="Reservation" asp-action="Details" asp-route-id="@reservation.ReservationId" class="btn btn-info">Details</a>
+                <a asp-controller="Reservation" asp-action="Edit" asp-route-ud="@reservation.ReservationId" class="btn btn-warning">Edit</a>
 
-                <button class="btn btn-danger" onclick="showDeleteModal('@customer.CustomerId')">Delete</button>
+                <button class="btn btn-danger" onclick="showDeleteModal('@reservation.ReservationId')">Delete</button>
             </div>
         </div>
     }
 
     <br />
-    <a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>
+    <a asp-action="Create" asp-controller="Reservation" class="btn btn-primary">New reservation</a>
 }
 
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -48,7 +49,7 @@ else
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this customer?
+                Are you sure you want to delete this reservation?
             </div>
             <div class="modal-footer">
                 <form id="deleteForm" method="post" asp-action="Delete" style="display:inline;">

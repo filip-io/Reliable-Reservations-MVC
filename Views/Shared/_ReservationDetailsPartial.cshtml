@@ -1,0 +1,26 @@
+﻿@model Reliable_Reservations_MVC.Models.Reservation.ReservationDetailsViewModel
+
+<div>
+    <p><strong>ReservationID:</strong> @Model.ReservationId</p>
+    <p><strong>Date:</strong> @Model.ReservationDate</p>
+    <p><strong>Status:</strong> @Model.Status</p>
+
+    <p><strong>Guests:</strong> @Model.NumberOfGuests</p>
+    <p><strong>Special requests:</strong> @Model.SpecialRequests</p>
+
+    <p><strong>Tables:</strong></p>
+    <ul>
+        @foreach (var table in Model.Tables)
+        {
+            <li>
+                <p><strong>Table Number:</strong> @table.TableNumber</p>
+                <p><strong>Seating Capacity:</strong> @table.SeatingCapacity</p>
+                <p><strong>Location:</strong> @table.Location</p>
+            </li>
+        }
+    </ul>
+
+    <p><strong>Customer:</strong> @Model.Customer.FirstName @Model.Customer.LastName</p>
+    <p><strong>Email:</strong> @Model.Customer.Email</p>
+    <p><strong>Phone:</strong> @Model.Customer.PhoneNumber</p>
+</div>

@@ -1,0 +1,7 @@
+﻿@model Reliable_Reservations_MVC.Models.Reservation.ReservationDetailsViewModel
+
+<h2>Reservation details</h2>
+<br />
+@await Html.PartialAsync("_ReservationDetailsPartial", Model)
+
+<a href="@Url.Action("Index", "Reservation")">Back to Reservations list</a>

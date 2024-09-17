@@ -77,7 +77,7 @@ namespace Reliable_Reservations_MVC.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var createdCustomer = JsonConvert.DeserializeObject<CustomerViewModel>(jsonResponse);
 
-                TempData["SuccessMessage"] = $"Successfully created new customer {createdCustomer?.FirstName} {createdCustomer?.LastName} with ID: {createdCustomer?.CustomerId}!";
+                TempData["SuccessMessage"] = $"Successfully created new customer {createdCustomer?.FirstName} {createdCustomer?.LastName} with ID: {createdCustomer?.CustomerId}";
 
                 return RedirectToAction("Index");
             }
