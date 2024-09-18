@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Reliable_Reservations_MVC.Models.OpeningHours;
+using Reliable_Reservations_MVC.Models.Table;
+using Reliable_Reservations_MVC.Models.TimeSlot;
 
 namespace Reliable_Reservations_MVC.Models.Reservation
 {
@@ -6,13 +9,12 @@ namespace Reliable_Reservations_MVC.Models.Reservation
     {
         public int CustomerId { get; set; }
 
-        public DateOnly ReservationDate { get; set; }
+        public DateTime ReservationDate { get; set; }
 
-        [Range(1, 15, ErrorMessage = "Number of guests must be between 1 and 15.")]
         public int NumberOfGuests { get; set; }
 
-        public List<int> TableNumbers { get; set; }
+        public List<int> TableNumbers { get; set; } = new List<int>();
 
-        public string? SpecialRequests { get; set; } = "None";
+        public string SpecialRequests { get; set; } = "None";
     }
 }
