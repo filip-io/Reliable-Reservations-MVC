@@ -2,10 +2,10 @@
 
 <h1>@ViewData["Title"]</h1>
 
-@if (TempData["SuccessMessage"] != null)
+@if (ViewBag.SuccessMessage != null)
 {
     <div class="alert alert-success">
-        @TempData["SuccessMessage"]
+        @ViewBag.SuccessMessage
     </div>
 }
 

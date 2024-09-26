@@ -1,0 +1,29 @@
+﻿@model Reliable_Reservations_MVC.Models.User.LoginViewModel
+
+<form asp-action="Login" method="post">
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control"/>
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" type="password" class="form-control"/>
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <br />
+    @if (ViewData["LoginFailed"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @ViewData["LoginFailed"]
+        </div>
+    }
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+
+@* Client-side validation using ASP.NET Core's built-in validation features.
+Allows immediate feedback to users without requiring a postback to the server.
+Page also won't reload/refresh  *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,14 @@
+﻿@{
+    var uniqueName = User.FindFirst("unique_name").Value;
+    var role = User.FindFirst("role").Value;
+}
+
+<div class="alert alert-success text-center" role="alert">
+    <div class="d-flex flex-column align-items-center">
+        <i class="bi bi-person-circle mb-3" style="font-size: 3rem;"></i>
+        <div>
+            <p class="mb-1">Welcome, <strong>@uniqueName</strong>!</p>
+            <p>You are logged in as: <strong>@role</strong>.</p>
+        </div>
+    </div>
+</div>

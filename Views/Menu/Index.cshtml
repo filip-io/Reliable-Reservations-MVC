@@ -5,6 +5,21 @@
     <h1>@ViewData["Title"]</h1>
 </div>
 
+@if (ViewBag.MenuItemCreatedMessage != null)
+{
+    <div class="alert alert-success text-center">
+        @Html.Raw(ViewBag.MenuItemCreatedMessage)
+    </div>
+}
+
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="d-flex justify-content-center align-items-center">
+        <a asp-action="Create" asp-controller="Menu" class="btn btn-primary">New menu item</a>
+    </div>
+}
+
+
 <hr class="my-5" />
 
 @if (ViewData["ResponseError"] != null)
@@ -20,25 +35,57 @@ else
     @foreach (var categoryGroup in Model.GroupBy(item => item.Category))
     {
         <div class="text-center mb-5">
-            <!-- Add bottom margin to separate categories -->
-            <h2>@categoryGroup.Key</h2> <!-- Center the category name -->
+            <h2>@categoryGroup.Key</h2>
         </div>
 
         <div class="d-flex flex-wrap justify-content-center mb-5">
-            <!-- Center items horizontally -->
             @foreach (var menuItem in categoryGroup)
             {
                 <div class="card m-2" style="width: 18rem;">
-                    <!-- Flexbox item with fixed height -->
                     <div class="card-body">
                         <h5 class="card-title">@menuItem.Name</h5>
                         <p class="card-text">@menuItem.Description</p>
                         <p class="card-text">@menuItem.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</p>
                     </div>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a asp-controller="Menu" asp-action="Details" asp-route-id="@menuItem.MenuItemId" class="btn btn-info">Details</a>
+                        <a asp-controller="Menu" asp-action="Edit" asp-route-id="@menuItem.MenuItemId" class="btn btn-warning">Edit</a>
+                        <button class="btn btn-danger" onclick="showDeleteModal('@menuItem.MenuItemId')">Delete</button>
+                    }
                 </div>
             }
         </div>
 
-        <hr class="my-5" /> <!-- Add vertical margins to the separator -->
+        <hr class="my-5" />
     }
 }
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this menu item?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post" asp-action="Delete" style="display:inline;">
+                    <input type="hidden" id="customerId" name="id" value="" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showDeleteModal(customerId) {
+        $('#customerId').val(customerId);
+        $('#deleteModal').modal('show');
+    }
+</script>

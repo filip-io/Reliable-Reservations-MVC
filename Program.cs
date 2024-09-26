@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Reliable_Reservations_MVC
 {
@@ -8,8 +10,27 @@ namespace Reliable_Reservations_MVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/User/login";
+                });
+
+            builder.Services.AddAuthorization();
+
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews()
+                   .AddJsonOptions(options =>
+                   {
+                       options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                   });
+
             builder.Services.AddHttpClient();
 
             var app = builder.Build();
@@ -26,7 +47,7 @@ namespace Reliable_Reservations_MVC
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

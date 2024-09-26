@@ -12,28 +12,36 @@
 <form asp-action="Create" method="post">
     <div class="form-group">
         <label asp-for="FirstName"></label>
-        <input asp-for="FirstName" class="form-control" required/>
-        @* <span asp-validation-for="FirstName" class="text-danger"></span> *@
+        <input asp-for="FirstName" class="form-control"/>
+        <span asp-validation-for="FirstName" class="text-danger"></span>
     </div>
-
+    <br />
     <div class="form-group">
         <label asp-for="LastName"></label>
-        <input asp-for="LastName" class="form-control" required/>
-        @* <span asp-validation-for="LastName" class="text-danger"></span> *@
+        <input asp-for="LastName" class="form-control"/>
+        <span asp-validation-for="LastName" class="text-danger"></span>
     </div>
-
+    <br />
     <div class="form-group">
         <label asp-for="PhoneNumber"></label>
-        <input asp-for="PhoneNumber" class="form-control" required/>
-        @* <span asp-validation-for="PhoneNumber" class="text-danger"></span> *@
+        <input asp-for="PhoneNumber" class="form-control"/>
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
     </div>
-
+    <br />
     <div class="form-group">
         <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" required/>
-        @* <span asp-validation-for="Email" class="text-danger"></span> *@
+        <input asp-for="Email" class="form-control"/>
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
-
+    <br />
     <br />
     <button type="submit" class="btn btn-primary">Create</button>
 </form>
+
+
+@* Client-side validation using ASP.NET Core's built-in validation features. 
+Allows immediate feedback to users without requiring a postback to the server.
+Page also won't reload/refresh  *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

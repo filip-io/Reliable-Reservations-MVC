@@ -6,6 +6,7 @@ using Reliable_Reservations_MVC.Models.OpeningHours;
 using Reliable_Reservations_MVC.Models.Reservation;
 using Reliable_Reservations_MVC.Models.Table;
 using Reliable_Reservations_MVC.Models.TimeSlot;
+using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
@@ -27,6 +28,19 @@ namespace Reliable_Reservations_MVC.Controllers
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Reservations";
+
+            if (TempData["SuccessMessage"] != null)
+            {
+                ViewBag.MenuItemCreatedMessage = TempData["SuccessMessage"].ToString();
+                TempData.Clear();
+            }
+
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
 
             try
             {
@@ -63,6 +77,16 @@ namespace Reliable_Reservations_MVC.Controllers
         public async Task<IActionResult> Create()
         {
             ViewData["Title"] = "Make reservation";
+
+
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+
             var model = new ReservationCreateViewModel();
 
             try

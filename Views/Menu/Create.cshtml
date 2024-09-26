@@ -1,0 +1,67 @@
+﻿@model Reliable_Reservations_MVC.Models.Menu.MenuItemCreateViewModel
+
+<h1>Add new menu item</h1>
+
+<br />
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <br />
+    <div class="form-group">
+        <label asp-for="Description"></label>
+        <input asp-for="Description" class="form-control" />
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <br />
+    <div class="form-group">
+        <label asp-for="Price"></label>
+        <input asp-for="Price" class="form-control" />
+        <span asp-validation-for="Price" class="text-danger"></span>
+    </div>
+    <br />
+    <div class="form-group">
+        <label asp-for="Category"></label>
+        <select asp-for="Category" class="form-control">
+            <option value="">Select a category</option>
+            @foreach (var category in ViewBag.Categories)
+            {
+                <option value="@category.Text">@category.Text</option>
+            }
+        </select>
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+    <br />
+    <div class="form-group">
+        <label asp-for="AvailabilityStatus"></label>
+        <select asp-for="AvailabilityStatus" class="form-control">
+            <option value="true">Available</option>
+            <option value="false">Not Available</option>
+        </select>
+        <span asp-validation-for="AvailabilityStatus" class="text-danger"></span>
+    </div>
+    <br />
+    <div class="form-group">
+        <label asp-for="IsPopular"></label>
+        <select asp-for="IsPopular" class="form-control">
+            <option value="false">Nah!</option>
+            <option value="true">Oh yes!</option>
+        </select>
+        <span asp-validation-for="IsPopular" class="text-danger"></span>
+    </div>
+
+    <br />
+
+    <button type="submit" class="btn btn-primary">Add</button>
+</form>
+
+
+@* Client-side validation using ASP.NET Core's built-in validation features.
+Allows immediate feedback to users without requiring a postback to the server.
+Page also won't reload/refresh  *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

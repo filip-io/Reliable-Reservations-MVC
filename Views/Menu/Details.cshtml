@@ -1,0 +1,7 @@
+﻿@model Reliable_Reservations_MVC.Models.Menu.MenuItemViewModel
+
+<h2>Menu item details</h2>
+<br />
+@await Html.PartialAsync("_MenuItemDetailsPartial", Model)
+
+<a href="@Url.Action("Index","Menu")">Back to the Menu</a>

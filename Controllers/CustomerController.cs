@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Reliable_Reservations_MVC.Models.Customer;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace Reliable_Reservations_MVC.Controllers
@@ -18,9 +21,13 @@ namespace Reliable_Reservations_MVC.Controllers
             _baseUri = configuration["ApiSettings:BaseUri"];
         }
 
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Registered customers";
+
+            var token = HttpContext.Request.Cookies["jwtToken"];
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             try
             {
@@ -53,7 +60,7 @@ namespace Reliable_Reservations_MVC.Controllers
             return View(new List<CustomerViewModel>());
         }
 
-
+        [Authorize]
         public IActionResult Create()
         {
             ViewData["Title"] = "Register customer";
@@ -61,11 +68,16 @@ namespace Reliable_Reservations_MVC.Controllers
             return View();
         }
 
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel customerCreateViewModel)
         {
-            // Post/Redirect/Get (PRG) Pattern with TempData
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
 
             var json = JsonConvert.SerializeObject(customerCreateViewModel);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -82,14 +94,33 @@ namespace Reliable_Reservations_MVC.Controllers
                 return RedirectToAction("Index");
             }
 
-            ModelState.AddModelError("", "Error creating customer.");
+            var errorResponse = await response.Content.ReadAsStringAsync();
+            var statusCode = response.StatusCode;
+
+            if (statusCode == HttpStatusCode.Unauthorized)
+            {
+                ModelState.AddModelError("", "Unauthorized access. Please check your credentials.");
+            }
+            else
+            {
+                ModelState.AddModelError("", $"Error creating customer: {errorResponse}");
+            }
+
             return View(customerCreateViewModel);
         }
 
 
 
+        [Authorize]
         public async Task<IActionResult> Details(int id)
         {
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
             var response = await _client.GetAsync($"{_baseUri}api/Customer/{id}");
 
             if (response.IsSuccessStatusCode)
@@ -103,9 +134,16 @@ namespace Reliable_Reservations_MVC.Controllers
             return NotFound();
         }
 
-
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
             var response = await _client.GetAsync($"{_baseUri}api/Customer/{id}");
 
             var json = await response.Content.ReadAsStringAsync();
@@ -115,14 +153,22 @@ namespace Reliable_Reservations_MVC.Controllers
             return View(customer);
         }
 
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit(CustomerEditViewModel customerEditViewModel)
         {
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
             if (!ModelState.IsValid)
             {
-                return View(customerEditViewModel); // Return the model and validation error messages
+                return View(customerEditViewModel);
             }
+
             var json = JsonConvert.SerializeObject(customerEditViewModel);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -132,10 +178,17 @@ namespace Reliable_Reservations_MVC.Controllers
             return RedirectToAction("Index");
         }
 
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
             var response = await _client.DeleteAsync($"{_baseUri}api/Customer/{id}");
 
             return RedirectToAction("Index");

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Reliable_Reservations_MVC.Models.Menu;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authorization;
 
 public class HomeController : Controller
 {

@@ -1,5 +1,7 @@
 ﻿@model List<Reliable_Reservations_MVC.Models.Customer.CustomerViewModel>
 
+
+
 <h1>@ViewData["Title"]</h1>
 
 @if (TempData["SuccessMessage"] != null)
@@ -30,7 +32,6 @@ else
 
                 <a asp-controller="Customer" asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-info">Details</a>
                 <a asp-controller="Customer" asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-warning">Edit</a>
-
                 <button class="btn btn-danger" onclick="showDeleteModal('@customer.CustomerId')">Delete</button>
             </div>
         </div>
