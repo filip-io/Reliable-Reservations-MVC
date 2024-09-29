@@ -5,34 +5,38 @@
     ViewData["Title"] = "Welcome";
 }
 
-<div class="text-center">
-    
+<header class="text-center">
     <h1 class="display-4">Magnificent</h1>
     <h1 class="display-4">Restaurant</h1>
-    
     <p>A culinary experience beyond anything you've ever experienced.</p>
     <br />
-    <img src="img/logo.webp" style="object-fit: cover; width: 300px; height: 300px;" />
-
+    <img src="img/logo.webp" alt="Magnificent Restaurant Logo" style="object-fit: cover; width: 300px; height: 300px;" />
     <hr class="my-5" />
+</header>
 
-    <h2>Popular dishes</h2>
-    <br />
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (var item in Model)
-        {
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">@item.Name</h5>
-                        <p class="card-text">
-                            <strong>@item.Category</strong>  
-                            <br />
-                            <strong>Price:</strong> @item.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))
-                        </p>
+<main>
+    @if (Model.Any())
+    {
+        <section class="text-center" aria-labelledby="popular-dishes">
+            <h2 id="popular-dishes">Popular Dishes</h2>
+            <br />
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col">
+                        <article class="card h-100">
+                            <div class="card-body">
+                                <h4 class="card-title">@item.Name</h4>
+                                <p class="card-text">
+                                    <strong>Category:</strong> @item.Category
+                                    <br />
+                                    <strong>Price:</strong> @item.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))
+                                </p>
+                            </div>
+                        </article>
                     </div>
-                </div>
+                }
             </div>
-        }
-    </div>
-</div>
+        </section>
+    }
+</main>

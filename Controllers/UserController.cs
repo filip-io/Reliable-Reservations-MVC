@@ -12,11 +12,13 @@ namespace Reliable_Reservations_MVC.Controllers
     public class UserController : Controller
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<UserController> _logger;
         private readonly string? _baseUri;
-        public UserController(HttpClient httpClient, IConfiguration configuration)
+        public UserController(HttpClient httpClient, ILogger<UserController> logger, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _baseUri = configuration["ApiSettings:BaseUri"];
+            _logger = logger;
         }
 
 
@@ -35,45 +37,61 @@ namespace Reliable_Reservations_MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel loginViewModel)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{_baseUri}api/User/login", loginViewModel);
-                
-                if (!response.IsSuccessStatusCode)
+                if (ModelState.IsValid)
                 {
-                    ViewData["LoginFailed"] = "Invalid email or password.";
-                    return View(loginViewModel);
+                    var response = await _httpClient.PostAsJsonAsync($"{_baseUri}api/User/login", loginViewModel);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        ViewData["LoginFailed"] = "Invalid email or password.";
+                        return View(loginViewModel);
+                    }
+
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var token = JsonConvert.DeserializeObject<TokenResponse>(jsonResponse);
+
+                    var handler = new JwtSecurityTokenHandler();
+                    var jwtToken = handler.ReadJwtToken(token.Token);
+
+                    var claims = jwtToken.Claims.ToList();
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, new AuthenticationProperties
+                    {
+                        IsPersistent = true,
+                        ExpiresUtc = jwtToken.ValidTo
+                    });
+
+                    HttpContext.Response.Cookies.Append("jwtToken", token.Token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        Expires = jwtToken.ValidTo
+                    });
+
+                    ViewData["ResponseError"] = "Unable to reach the API. Please try again later.";
+                    return RedirectToAction("Index", "User");
                 }
 
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var token = JsonConvert.DeserializeObject<TokenResponse>(jsonResponse);
-
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token.Token);
-
-                var claims = jwtToken.Claims.ToList();
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    ExpiresUtc = jwtToken.ValidTo
-                });
-
-                HttpContext.Response.Cookies.Append("jwtToken", token.Token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    Expires = jwtToken.ValidTo
-                });
-
-                return RedirectToAction("Index", "User");
+                return View(loginViewModel);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Error reaching the API.");
+                ViewData["ResponseError"] = "Unable to reach the API. Please try again later.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred.");
+                ViewData["ResponseError"] = "An unexpected error occurred. Please try again later.";
             }
 
-            return View(loginViewModel);
+            return View(new LoginViewModel());
         }
 
         [HttpPost]

@@ -20,6 +20,7 @@ namespace Reliable_Reservations_MVC.Controllers
             _baseUri = configuration["ApiSettings:BaseUri"];
         }
 
+
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Menu";
@@ -62,6 +63,7 @@ namespace Reliable_Reservations_MVC.Controllers
             return View();
         }
 
+
         [Authorize]
         public IActionResult Create()
         {
@@ -75,6 +77,7 @@ namespace Reliable_Reservations_MVC.Controllers
 
             return View();
         }
+
 
         [Authorize]
         [HttpPost]
@@ -108,6 +111,7 @@ namespace Reliable_Reservations_MVC.Controllers
             return View(menuItemCreateViewModel);
         }
 
+
         [Authorize]
         public async Task<IActionResult> Details(int id)
         {
@@ -124,15 +128,15 @@ namespace Reliable_Reservations_MVC.Controllers
             return NotFound();
         }
 
+
         [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
-            var token = HttpContext.Request.Cookies["jwtToken"];
-
-            if (!string.IsNullOrEmpty(token))
+            ViewBag.Categories = Enum.GetValues(typeof(Category)).Cast<Category>().Select(c => new
             {
-                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
+                Value = c,
+                Text = c.ToString()
+            }).ToList();
 
             var reponse = await _client.GetAsync($"{_baseUri}api/MenuItem/{id}");
 
@@ -142,6 +146,7 @@ namespace Reliable_Reservations_MVC.Controllers
 
             return View(menuItem);
         }
+
 
         [Authorize]
         [HttpPost]
@@ -164,8 +169,11 @@ namespace Reliable_Reservations_MVC.Controllers
 
             await _client.PutAsync($"{_baseUri}api/MenuItem/{menuItemEditViewModel.MenuItemId}", content);
 
+            TempData["SuccessMessage"] = $"Successfully edited menu item with ID: <b>{menuItemEditViewModel.MenuItemId}</b>";
+
             return RedirectToAction("Index");
         }
+
 
         [Authorize]
         [HttpPost]
@@ -178,7 +186,7 @@ namespace Reliable_Reservations_MVC.Controllers
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _client.DeleteAsync($"{_baseUri}api/MenuItem/{id}");
+            await _client.DeleteAsync($"{_baseUri}api/MenuItem/{id}");
 
             TempData["SuccessMessage"] = $"Successfully deleted menu item with ID: <b>{id}</b>";
 

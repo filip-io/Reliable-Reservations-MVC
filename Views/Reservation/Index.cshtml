@@ -30,8 +30,8 @@ else
                 <p class="card-text">@reservation.Status</p>
 
                 <a asp-controller="Reservation" asp-action="Details" asp-route-id="@reservation.ReservationId" class="btn btn-info">Details</a>
-                <a asp-controller="Reservation" asp-action="Edit" asp-route-ud="@reservation.ReservationId" class="btn btn-warning">Edit</a>
-
+                <a asp-controller="Reservation" asp-action="Edit" asp-route-id="@reservation.ReservationId" class="btn btn-warning">Edit</a>
+                
                 <button class="btn btn-danger" onclick="showDeleteModal('@reservation.ReservationId')">Delete</button>
             </div>
         </div>

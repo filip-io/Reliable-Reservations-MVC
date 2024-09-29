@@ -16,4 +16,8 @@
     <None Include="wwwroot\img\logo.webp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\NewFolder\" />
+  </ItemGroup>
+
 </Project>

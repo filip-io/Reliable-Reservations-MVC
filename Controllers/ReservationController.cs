@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Reliable_Reservations_MVC.Models;
 using Reliable_Reservations_MVC.Models.Customer;
@@ -249,5 +250,126 @@ namespace Reliable_Reservations_MVC.Controllers
 
             return NotFound();
         }
+
+
+
+        [Authorize]
+        // MUST name the parameter "id" and not "reservationId" because ASP.NET Core's routing system
+        // sets a route value with the key "id" when the asp-route-id attribute is used in the HTML of
+        // the View where the Edit controller is called from.
+        public async Task<IActionResult> Edit(int id)
+        {
+            ViewData["Title"] = "Edit reservation";
+
+
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            try
+            {
+                var response = await _client.GetAsync($"{_baseUri}api/OpeningHours/all");
+                if (response.IsSuccessStatusCode)
+                {
+                    var openingHoursJson = await response.Content.ReadAsStringAsync();
+                    var openingHours = JsonConvert.DeserializeObject<List<OpeningHoursViewModel>>(openingHoursJson);
+
+                    // Calculate days of the week that should be greyed out
+                    var closedDays = openingHours
+                        .Where(oh => oh.IsClosed)
+                        .Select(oh => oh.DayOfWeek)
+                        .ToList();
+
+                    ViewBag.ClosedDays = closedDays;
+                    ViewBag.OpeningHours = openingHours; // Pass the full OpeningHours data to the view
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch opening hours.");
+                    ViewData["ResponseError"] = "Failed to fetch opening hours. Please try again later.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching opening hours.");
+                ViewData["ResponseError"] = "An error occurred. Please try again later.";
+            }
+
+            try
+            {
+                var response = await _client.GetAsync($"{_baseUri}api/Reservation/{id}");
+
+                var json = await response.Content.ReadAsStringAsync();
+
+                var reservation = JsonConvert.DeserializeObject<ReservationEditViewModel>(json);
+
+                var reservationEditViewModel = new ReservationEditViewModel
+                {
+                    ReservationId = id,
+                    Customer = new CustomerViewModel
+                    {
+                        CustomerId = reservation.Customer.CustomerId,
+                        FirstName = reservation.Customer.FirstName,
+                        LastName = reservation.Customer.LastName,
+                        PhoneNumber = reservation.Customer.PhoneNumber,
+                        Email = reservation.Customer.Email,
+                    },
+                    NumberOfGuests = reservation.NumberOfGuests,
+                    ReservationDate = reservation.ReservationDate,
+                    Tables = reservation.Tables.Select(t => new TableViewModel
+                    {
+                        TableId = t.TableId,
+                        TableNumber = t.TableNumber,
+                        SeatingCapacity = t.SeatingCapacity,
+                        Location = t.Location
+                    }).ToList(),
+                    SpecialRequests = reservation.SpecialRequests
+                };
+
+                return View(reservationEditViewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while fetching the reservation.");
+                ViewData["ResponseError"] = "An error occured. Please try again later.";
+            }
+
+            return View();
+        }
+
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Edit(ReservationEditViewModel reservationEditViewModel)
+        {
+            // Post/Redirect/Get (PRG) Pattern with TempData
+
+            var json = JsonConvert.SerializeObject(reservationEditViewModel);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _client.PutAsync($"{_baseUri}api/Reservation/{reservationEditViewModel.ReservationId}", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var updatedReservation = JsonConvert.DeserializeObject<ReservationDetailsViewModel>(jsonResponse);
+
+                TempData["SuccessMessage"] =
+                    $"Successfully created new reservation for " +
+                    $"{updatedReservation?.Customer?.FirstName} " +
+                    $"{updatedReservation?.Customer?.LastName} " +
+                    $"with ID: {updatedReservation?.ReservationId}";
+
+                return RedirectToAction("Index");
+            }
+
+            ModelState.AddModelError("", "Error creating reservation.");
+            return View(reservationEditViewModel);
+        }
+
+
     }
 }

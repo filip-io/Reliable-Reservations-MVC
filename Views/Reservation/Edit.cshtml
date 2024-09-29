@@ -1,0 +1,145 @@
+﻿@using Newtonsoft.Json
+@model Reliable_Reservations_MVC.Models.Reservation.ReservationEditViewModel
+
+@{
+    var openingHours = ViewBag.OpeningHours as List<Reliable_Reservations_MVC.Models.OpeningHours.OpeningHoursViewModel> ?? new List<Reliable_Reservations_MVC.Models.OpeningHours.OpeningHoursViewModel>();
+    var closedDays = ViewBag.ClosedDays as List<string> ?? new List<string>();
+}
+
+<h1>Update reservation</h1>
+
+<br />
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @Html.ValidationSummary(true, "Please fix the following errors:")
+    </div>
+}
+
+<form method="post" asp-action="edit" id="reservationForm">
+
+    <input type="hidden" asp-for="ReservationId" />
+    <input type="hidden" asp-for="Customer.CustomerId" />
+
+    <div class="form-group">
+        <label asp-for="NumberOfGuests"></label>
+        <input id="numberOfGuests" asp-for="NumberOfGuests" class="form-control" required min="1" max="15" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ReservationDate"></label>
+        <input id="reservationDate" asp-for="ReservationDate" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Available Time Slots</label>
+        <select id="availableTimeSlots" class="form-control" required></select>
+    </div>
+
+    <input type="hidden" id="tableNumbers" name="TableNumbers" value="" />
+
+    <div class="form-group">
+        <label asp-for="SpecialRequests"></label>
+        <input asp-for="SpecialRequests" class="form-control" />
+    </div>
+
+    <br />
+
+    <button type="submit" class="btn btn-primary">Update Reservation</button>
+</form>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const closedDays = @Html.Raw(JsonConvert.SerializeObject(ViewBag.ClosedDays)) || [];
+            const datePicker = flatpickr('#reservationDate', {
+                minDate: "today",
+                dateFormat: "Y-m-d",
+                disable: [
+                    function (date) {
+                        const dayOfWeek = date.getDay();
+                        return closedDays.includes(dayOfWeek);
+                    }
+                ],
+                onChange: fetchAvailableTimeSlots
+            });
+
+            const numberOfGuestsInput = document.getElementById('numberOfGuests');
+            const availableTimeSlotsSelect = document.getElementById('availableTimeSlots');
+            const tableNumbersInput = document.getElementById('tableNumbers');
+            const reservationDateInput = document.getElementById('reservationDate'); // This will contain only the date
+            const noTimeSlotsMessage = document.getElementById('noTimeSlotsMessage');
+
+            numberOfGuestsInput.addEventListener('change', fetchAvailableTimeSlots);
+
+            function fetchAvailableTimeSlots(selectedDates, dateStr) {
+                const date = dateStr;
+                const numberOfGuests = parseInt(numberOfGuestsInput.value, 10);
+
+                if (!date || isNaN(numberOfGuests) || numberOfGuests <= 0) {
+                    return;
+                }
+
+                fetch(`/Reservation/GetAvailableTimeSlots?date=${date}&numberOfGuests=${numberOfGuests}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.message) {
+                            if (noTimeSlotsMessage) {
+                                noTimeSlotsMessage.innerText = data.message;
+                            }
+                            availableTimeSlotsSelect.innerHTML = ''; // Clear options
+                        } else {
+                            if (noTimeSlotsMessage) {
+                                noTimeSlotsMessage.innerText = ''; // Clear any previous message
+                            }
+                            allTimeSlots = data;
+                            updateAvailableTimeSlots();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching available time slots:', error);
+                        if (noTimeSlotsMessage) {
+                            noTimeSlotsMessage.innerText = 'Error fetching available time slots';
+                        }
+                    });
+            }
+
+            function updateAvailableTimeSlots() {
+                availableTimeSlotsSelect.innerHTML = '';
+
+                allTimeSlots.forEach(slot => {
+                    const startTime = new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const endTime = new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const option = new Option(`${startTime} - ${endTime} (Table ${slot.tableViewModel.tableNumber})`, JSON.stringify(slot));
+                    availableTimeSlotsSelect.add(option);
+                });
+            }
+
+            // Before form submission, combine the selected date and time slot start time
+            document.getElementById('reservationForm').addEventListener('submit', function (e) {
+                const selectedDate = reservationDateInput.value; // The selected date
+                const selectedTimeSlot = JSON.parse(availableTimeSlotsSelect.value); // The selected time slot object
+                const startTime = new Date(selectedTimeSlot.startTime); // The start time of the time slot
+
+                // Combine date and time to form the full ReservationDate
+                const reservationDateTime = new Date(selectedDate);
+                reservationDateTime.setHours(startTime.getHours(), startTime.getMinutes());
+
+                // Update the ReservationDate field with the full date and time
+                reservationDateInput.value = reservationDateTime.toISOString();
+
+                // Update the hidden input with the selected table numbers
+                tableNumbersInput.value = selectedTimeSlot.tableViewModel.tableNumber;
+            });
+        });
+
+    </script>
+
+}

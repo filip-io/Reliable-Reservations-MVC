@@ -3,73 +3,91 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Magnificent Restaurant - @ViewData["Title"]</title>
 
-    @*     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
+    <!-- Meta Description for SEO -->
+    <meta name="description" content="Magnificent Restaurant offers a delightful menu featuring starters, main courses, and desserts. Reserve a table or order online now!" />
+
+    <!-- Keywords for SEO -->
+    <meta name="keywords" content="restaurant, fine dining, reserve a table, magnificent restaurant, starters, main courses, desserts, online reservations" />
+
+    <!-- Open Graph for Social Media -->
+    <meta property="og:title" content="Magnificent Restaurant - @ViewData["Title"]" />
+    <meta property="og:description" content="Check out the delightful menu at Magnificent Restaurant and reserve a table for an amazing dining experience." />
+    <meta property="og:image" content="https://example.com/images/restaurant.jpg" />
+    <meta property="og:url" content="https://example.com" />
+    <meta property="og:type" content="restaurant" />
+
+    <!-- Twitter Card for Social Media -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Magnificent Restaurant - @ViewData["Title"]" />
+    <meta name="twitter:description" content="Discover our delightful menu and reserve a table at Magnificent Restaurant for an amazing dining experience." />
+    <meta name="twitter:image" content="https://example.com/images/restaurant.jpg" />
+
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="~/img/apple-touch-icon.png" asp-append-version="true" />
+    <link rel="icon" type="image/png" sizes="32x32" href="~/img/favicon-32x32.png" asp-append-version="true" />
+    <link rel="icon" type="image/png" sizes="16x16" href="~/img/favicon-16x16.png" asp-append-version="true" />
+    <link rel="icon" href="~/favicon.ico" asp-append-version="true" />
+    <link rel="manifest" href="~/site.webmanifest" asp-append-version="true" />
+
+    <!-- Stylesheets and Scripts -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/flatpickr.min.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    @* <link rel="stylesheet" href="~/Reliable_Reservations_MVC.styles.css" asp-append-version="true" /> *@
 </head>
 <body>
     <div class="page-container">
         <header>
-
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-
                 <div class="container-fluid">
-                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Magnificent Restaurant</a>
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        @(User.Identity.IsAuthenticated ? "Magnificent Admin" : "Magnificent Restaurant")
+                    </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                        <ul class="navbar-nav flex-grow-1">
+                        <ul class="navbar-nav flex-grow-1 align-items-center">
 
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Menu" asp-action="Index">Menu</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link text-dark">Reserve a table</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="About" asp-action="Index">About</a>
+                                <a class="nav-link @(User.Identity.IsAuthenticated ? "bg-warning text-dark fw-bold p-2 rounded bi bi-grid" : "text-dark")" asp-area="" asp-controller="Menu" asp-action="Index"> Menu</a>
                             </li>
 
                             @if (!User.Identity.IsAuthenticated)
                             {
-                                <a class="btn btn-info btn-sm d-flex justify-content-center align-items-center" asp-controller="User" asp-action="Login">Login</a>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark">Reserve a table</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="btn btn-info btn-sm d-flex justify-content-center align-items-center" asp-controller="User" asp-action="Login">Login</a>
+                                </li>
                             }
-
-                            @if (User.Identity.IsAuthenticated)
+                            else
                             {
-                                @* Admin stuff *@
-
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Reservation" asp-action="Index">Manage reservations</a>
+                                    <a class="nav-link bg-warning text-dark fw-bold p-2 rounded" asp-area="" asp-controller="Reservation" asp-action="Index">
+                                        <i class="bi bi-calendar-check"></i> Reservations
+                                    </a>
                                 </li>
-
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="Index">Manage Customers</a>
+                                    <a class="nav-link bg-warning text-dark fw-bold p-2 rounded" asp-area="" asp-controller="Customer" asp-action="Index">
+                                        <i class="bi bi-people"></i> Customers
+                                    </a>
                                 </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Menu" asp-action="Index">Manage Menu</a>
-                                </li>
-
-
-                                <form asp-controller="User" asp-action="Logout" method="post">
-                                    <button type="submit" class="btn btn-danger btn-sm">Logout</button>
-                                </form>
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <form asp-controller="User" asp-action="Logout" method="post">
+                                        <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+                                    </form>
+                                </div>
                             }
+
                         </ul>
                     </div>
                 </div>
@@ -87,13 +105,14 @@
                 &copy; @DateTime.Now.Year - Magnificent Restaurant
             </div>
         </footer>
-
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/flatpickr.min.js"></script>
+
+    <partial name="_ValidationScriptsPartial" />
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

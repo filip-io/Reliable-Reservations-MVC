@@ -3,6 +3,8 @@
 
 <div class="text-center my-5">
     <h1>@ViewData["Title"]</h1>
+    <br />
+    <h3>Explore Our Delicious Dishes</h3>
 </div>
 
 @if (ViewBag.MenuItemCreatedMessage != null)
@@ -14,13 +16,11 @@
 
 @if (User.Identity.IsAuthenticated)
 {
-    <div class="d-flex justify-content-center align-items-center">
+    <div class="d-flex justify-content-center align-items-center mb-4">
         <a asp-action="Create" asp-controller="Menu" class="btn btn-primary">New menu item</a>
     </div>
 }
 
-
-<hr class="my-5" />
 
 @if (ViewData["ResponseError"] != null)
 {
@@ -32,35 +32,71 @@ else if (Model == null || !Model.Any())
 }
 else
 {
-    @foreach (var categoryGroup in Model.GroupBy(item => item.Category))
-    {
-        <div class="text-center mb-5">
-            <h2>@categoryGroup.Key</h2>
-        </div>
+    <div class="container mb-5">
+        <form id="filterForm" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="categorySelect" class="form-label">Category</label>
+                    <select id="categorySelect" class="form-select">
+                        <option value="">All Categories</option>
+                        @foreach (var category in Model.Select(m => m.Category).Distinct())
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="minPriceSlider" class="form-label">Min Price: $<span id="minPriceValue"></span></label>
+                    <input type="range" class="form-range" id="minPriceSlider" min="0" max="100" step="0.01">
+                </div>
+                <div class="col-md-4">
+                    <label for="maxPriceSlider" class="form-label">Max Price: $<span id="maxPriceValue"></span></label>
+                    <input type="range" class="form-range" id="maxPriceSlider" min="0" max="100" step="0.01">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" id="filterButton" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
 
-        <div class="d-flex flex-wrap justify-content-center mb-5">
-            @foreach (var menuItem in categoryGroup)
+    <hr class="my-5" />
+
+    <div id="menuItemsContainer">
+        @{
+            Func<string, string> formatCategory = category =>
             {
-                <div class="card m-2" style="width: 18rem;">
-                    <div class="card-body">
-                        <h5 class="card-title">@menuItem.Name</h5>
-                        <p class="card-text">@menuItem.Description</p>
-                        <p class="card-text">@menuItem.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</p>
-                    </div>
-                    @if (User.Identity.IsAuthenticated)
+                return string.Concat(category.Select((ch, index) => index > 0 && char.IsUpper(ch) ? " " + ch : ch.ToString()));
+            };
+        }
+        @foreach (var categoryGroup in Model.GroupBy(item => item.Category))
+        {
+            <div class="category-group" data-category="@categoryGroup.Key">
+                <div class="text-center mb-5">
+                    <h2>@formatCategory(categoryGroup.Key.ToString())</h2>
+                </div>
+                <div class="d-flex flex-wrap justify-content-center mb-5">
+                    @foreach (var menuItem in categoryGroup)
                     {
-                        <a asp-controller="Menu" asp-action="Details" asp-route-id="@menuItem.MenuItemId" class="btn btn-info">Details</a>
-                        <a asp-controller="Menu" asp-action="Edit" asp-route-id="@menuItem.MenuItemId" class="btn btn-warning">Edit</a>
-                        <button class="btn btn-danger" onclick="showDeleteModal('@menuItem.MenuItemId')">Delete</button>
+                        <div class="card m-2 menu-item" style="width: 18rem;" data-price="@menuItem.Price.ToString("F2")">
+                            <div class="card-body">
+                                <h5 class="card-title">@menuItem.Name</h5>
+                                <p class="card-text">@menuItem.Description</p>
+                                <p class="card-text">@menuItem.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</p>
+                            </div>
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <a asp-controller="Menu" asp-action="Details" asp-route-id="@menuItem.MenuItemId" class="btn btn-info">Details</a>
+                                <a asp-controller="Menu" asp-action="Edit" asp-route-id="@menuItem.MenuItemId" class="btn btn-warning">Edit</a>
+                                <button class="btn btn-danger" onclick="showDeleteModal('@menuItem.MenuItemId')">Delete</button>
+                            }
+                        </div>
                     }
                 </div>
-            }
-        </div>
-
-        <hr class="my-5" />
-    }
+            </div>
+        }
+    </div>
 }
-
 
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -83,9 +119,78 @@ else
     </div>
 </div>
 
-<script>
-    function showDeleteModal(customerId) {
-        $('#customerId').val(customerId);
-        $('#deleteModal').modal('show');
-    }
-</script>
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const menuItems = $('.menu-item');
+            const categoryGroups = $('.category-group');
+            const categorySelect = $('#categorySelect');
+            const minPriceSlider = $('#minPriceSlider');
+            const maxPriceSlider = $('#maxPriceSlider');
+            const minPriceValue = $('#minPriceValue');
+            const maxPriceValue = $('#maxPriceValue');
+            const filterButton = $('#filterButton');
+
+            // Set initial price range
+            const prices = Array.from(menuItems).map(item => parseFloat($(item).data('price')));
+            const minPrice = Math.floor(Math.min(...prices) * 100) / 100; // Round down to nearest cent
+            const maxPrice = Math.ceil(Math.max(...prices) * 100) / 100; // Round up to nearest cent
+            
+            minPriceSlider.attr('min', minPrice);
+            minPriceSlider.attr('max', maxPrice);
+            minPriceSlider.val(minPrice);
+            
+            maxPriceSlider.attr('min', minPrice);
+            maxPriceSlider.attr('max', maxPrice);
+            maxPriceSlider.val(maxPrice);
+
+            updatePriceLabels();
+
+            function updatePriceLabels() {
+                minPriceValue.text(parseFloat(minPriceSlider.val()).toFixed(2));
+                maxPriceValue.text(parseFloat(maxPriceSlider.val()).toFixed(2));
+            }
+
+            minPriceSlider.on('input', updatePriceLabels);
+            maxPriceSlider.on('input', updatePriceLabels);
+
+            function filterItems() {
+                const selectedCategory = categorySelect.val();
+                const minPrice = parseFloat(minPriceSlider.val());
+                const maxPrice = parseFloat(maxPriceSlider.val());
+
+                menuItems.hide();
+                categoryGroups.hide();
+
+                menuItems.each(function() {
+                    const item = $(this);
+                    const itemCategory = item.closest('.category-group').data('category');
+                    const itemPrice = parseFloat(item.data('price'));
+                    const categoryMatch = selectedCategory === '' || itemCategory === selectedCategory;
+                    const priceMatch = itemPrice >= minPrice && itemPrice <= maxPrice;
+
+                    if (categoryMatch && priceMatch) {
+                        item.show();
+                        item.closest('.category-group').show();
+                    }
+                });
+
+                // Show "No results" message if no items are visible
+                if ($('.menu-item:visible').length === 0) {
+                    $('#menuItemsContainer').html('<p class="text-center">No menu items match your filter criteria.</p>');
+                }
+            }
+
+            filterButton.on('click', filterItems);
+
+            // Initial display (show all items)
+            menuItems.show();
+            categoryGroups.show();
+        });
+
+        function showDeleteModal(customerId) {
+            $('#customerId').val(customerId);
+            $('#deleteModal').modal('show');
+        }
+    </script>
+}
