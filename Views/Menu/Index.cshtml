@@ -3,8 +3,6 @@
 
 <div class="text-center my-5">
     <h1>@ViewData["Title"]</h1>
-    <br />
-    <h3>Explore Our Delicious Dishes</h3>
 </div>
 
 @if (ViewBag.MenuItemCreatedMessage != null)
@@ -21,14 +19,13 @@
     </div>
 }
 
-
 @if (ViewData["ResponseError"] != null)
 {
     <p class="alert alert-danger text-center">@ViewData["ResponseError"]</p>
 }
 else if (Model == null || !Model.Any())
 {
-    <p class="text-center">No menu items exist. Check back later!</p>
+    <p class="text-center">No menu items available at the moment. Please check back later!</p>
 }
 else
 {
@@ -71,18 +68,19 @@ else
         }
         @foreach (var categoryGroup in Model.GroupBy(item => item.Category))
         {
-            <div class="category-group" data-category="@categoryGroup.Key">
-                <div class="text-center mb-5">
-                    <h2>@formatCategory(categoryGroup.Key.ToString())</h2>
-                </div>
+            <section class="category-group" data-category="@categoryGroup.Key">
+                <h2 class="text-center mb-5">@formatCategory(categoryGroup.Key.ToString())</h2>
                 <div class="d-flex flex-wrap justify-content-center mb-5">
                     @foreach (var menuItem in categoryGroup)
                     {
-                        <div class="card m-2 menu-item" style="width: 18rem;" data-price="@menuItem.Price.ToString("F2")">
+                        <article class="card m-2 menu-item" style="width: 18rem;" data-price="@menuItem.Price.ToString("F2")">
                             <div class="card-body">
-                                <h5 class="card-title">@menuItem.Name</h5>
+                                <h3 class="card-title">@menuItem.Name</h3>
                                 <p class="card-text">@menuItem.Description</p>
-                                <p class="card-text">@menuItem.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</p>
+                                <p class="card-text">
+                                    <span itemprop="price" content="@menuItem.Price.ToString("F2")">@menuItem.Price.ToString("C", CultureInfo.GetCultureInfo("en-US"))</span>
+                                    <meta itemprop="priceCurrency" content="USD">
+                                </p>
                             </div>
                             @if (User.Identity.IsAuthenticated)
                             {
@@ -90,10 +88,10 @@ else
                                 <a asp-controller="Menu" asp-action="Edit" asp-route-id="@menuItem.MenuItemId" class="btn btn-warning">Edit</a>
                                 <button class="btn btn-danger" onclick="showDeleteModal('@menuItem.MenuItemId')">Delete</button>
                             }
-                        </div>
+                        </article>
                     }
                 </div>
-            </div>
+            </section>
         }
     </div>
 }
@@ -121,7 +119,7 @@ else
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const menuItems = $('.menu-item');
             const categoryGroups = $('.category-group');
             const categorySelect = $('#categorySelect');
@@ -135,11 +133,11 @@ else
             const prices = Array.from(menuItems).map(item => parseFloat($(item).data('price')));
             const minPrice = Math.floor(Math.min(...prices) * 100) / 100; // Round down to nearest cent
             const maxPrice = Math.ceil(Math.max(...prices) * 100) / 100; // Round up to nearest cent
-            
+
             minPriceSlider.attr('min', minPrice);
             minPriceSlider.attr('max', maxPrice);
             minPriceSlider.val(minPrice);
-            
+
             maxPriceSlider.attr('min', minPrice);
             maxPriceSlider.attr('max', maxPrice);
             maxPriceSlider.val(maxPrice);
@@ -162,7 +160,7 @@ else
                 menuItems.hide();
                 categoryGroups.hide();
 
-                menuItems.each(function() {
+                menuItems.each(function () {
                     const item = $(this);
                     const itemCategory = item.closest('.category-group').data('category');
                     const itemPrice = parseFloat(item.data('price'));
@@ -192,5 +190,6 @@ else
             $('#customerId').val(customerId);
             $('#deleteModal').modal('show');
         }
+
     </script>
 }

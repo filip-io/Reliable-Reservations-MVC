@@ -23,7 +23,7 @@ namespace Reliable_Reservations_MVC.Controllers
 
         public async Task<IActionResult> Index()
         {
-            ViewData["Title"] = "Menu";
+            ViewData["Title"] = "Explore our Menu";
 
             if (TempData["SuccessMessage"] != null)
             {

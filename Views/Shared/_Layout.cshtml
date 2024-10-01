@@ -39,6 +39,7 @@
 </head>
 <body>
     <div class="page-container">
+
         <header>
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
                 <div class="container-fluid">
@@ -50,14 +51,14 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                        <ul class="navbar-nav flex-grow-1 align-items-center">
+                        <ul class="navbar-nav flex-grow-1">
 
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link @(User.Identity.IsAuthenticated ? "bg-warning text-dark fw-bold p-2 rounded bi bi-grid" : "text-dark")" asp-area="" asp-controller="Menu" asp-action="Index"> Menu</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Menu" asp-action="Index"> Menu</a>
                             </li>
 
                             @if (!User.Identity.IsAuthenticated)
@@ -69,23 +70,20 @@
                                     <a class="btn btn-info btn-sm d-flex justify-content-center align-items-center" asp-controller="User" asp-action="Login">Login</a>
                                 </li>
                             }
-                            else
+
+                            @if (User.Identity.IsAuthenticated)
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link bg-warning text-dark fw-bold p-2 rounded" asp-area="" asp-controller="Reservation" asp-action="Index">
-                                        <i class="bi bi-calendar-check"></i> Reservations
-                                    </a>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Reservation" asp-action="Index">Reservations</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link bg-warning text-dark fw-bold p-2 rounded" asp-area="" asp-controller="Customer" asp-action="Index">
-                                        <i class="bi bi-people"></i> Customers
-                                    </a>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="Index">Customers</a>
                                 </li>
-                                <div class="d-flex justify-content-center align-items-center">
+                                <li class="nav item">
                                     <form asp-controller="User" asp-action="Logout" method="post">
                                         <button type="submit" class="btn btn-danger btn-sm">Logout</button>
                                     </form>
-                                </div>
+                                </li>
                             }
 
                         </ul>
@@ -116,3 +114,39 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+
+
+
+
+@* <li class="nav-item">
+    <a class="nav-link @(User.Identity.IsAuthenticated ? "bg-warning text-dark fw-bold p-2 rounded bi bi-grid" : "text-dark")" asp-area="" asp-controller="Menu" asp-action="Index"> Menu</a>
+</li>
+
+@if (!User.Identity.IsAuthenticated)
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark">Reserve a table</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-info btn-sm d-flex justify-content-center align-items-center" asp-controller="User" asp-action="Login">Login</a>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link bg-warning text-dark fw-bold p-2 rounded" asp-area="" asp-controller="Reservation" asp-action="Index">
+            <i class="bi bi-calendar-check"></i> Reservations
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link bg-warning text-dark fw-bold p-2 rounded" asp-area="" asp-controller="Customer" asp-action="Index">
+            <i class="bi bi-people"></i> Customers
+        </a>
+    </li>
+    <div class="d-flex justify-content-center align-items-center">
+        <form asp-controller="User" asp-action="Logout" method="post">
+            <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+        </form>
+    </div>
+} *@
