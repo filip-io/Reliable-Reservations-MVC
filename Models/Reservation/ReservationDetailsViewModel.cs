@@ -1,5 +1,6 @@
 ﻿using Reliable_Reservations_MVC.Models.Customer;
 using Reliable_Reservations_MVC.Models.Table;
+using Reliable_Reservations_MVC.Models.TimeSlot;
 
 namespace Reliable_Reservations_MVC.Models.Reservation
 {
@@ -28,5 +29,7 @@ namespace Reliable_Reservations_MVC.Models.Reservation
         public ReservationStatus Status { get; set; }
 
         public List<TableViewModel> Tables { get; set; } = new List<TableViewModel>();
+
+        public List<TimeSlotViewModel> TimeSlots { get; set; } = new List<TimeSlotViewModel>();
     }
 }

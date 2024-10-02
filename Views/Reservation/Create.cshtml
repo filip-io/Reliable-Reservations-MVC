@@ -1,146 +1,117 @@
-﻿@using Newtonsoft.Json
-@model Reliable_Reservations_MVC.Models.Reservation.ReservationCreateViewModel
+﻿@model Reliable_Reservations_MVC.Models.Reservation.ReservationCreateViewModel
 
 @{
-    var openingHours = ViewBag.OpeningHours as List<Reliable_Reservations_MVC.Models.OpeningHours.OpeningHoursViewModel> ?? new List<Reliable_Reservations_MVC.Models.OpeningHours.OpeningHoursViewModel>();
-    var closedDays = ViewBag.ClosedDays as List<string> ?? new List<string>();
+    ViewData["Title"] = "Make a Reservation";
 }
 
-<h1>Make new reservation</h1>
+<h2>Make a Reservation</h2>
 
-<br />
+<form asp-action="Create" method="post">
+<div class="form-group">
+    <label for="reservationDate">Select Date</label>
+    <input type="date" id="reservationDate" class="form-control" />
+</div>
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger">
-        @Html.ValidationSummary(true, "Please fix the following errors:")
-    </div>
-}
+<div class="form-group">
+    <label for="numberOfGuests">Number of Guests</label>
+    <input type="number" id="numberOfGuests" class="form-control" min="1" max="8" />
+</div>
 
-<form asp-action="Create" method="post" id="reservationForm">
-    <div class="form-group">
-        <label asp-for="CustomerId"></label>
-        <input asp-for="CustomerId" class="form-control" required min="1" />
-    </div>
+<div class="form-group">
+    <label for="availableTimeSlots">Available Time Slots</label>
+    <select id="availableTimeSlots" class="form-control">
+        <option value="">Please select a date and number of guests...</option>
+    </select>
+</div>
 
-    <div class="form-group">
-        <label asp-for="NumberOfGuests"></label>
-        <input id="numberOfGuests" asp-for="NumberOfGuests" class="form-control" required min="1" max="15" />
-    </div>
-
-    <div class="form-group">
-        <label asp-for="ReservationDate"></label>
-        <input id="reservationDate" asp-for="ReservationDate" class="form-control" required />
-    </div>
-
-    <div class="form-group">
-        <label>Available Time Slots</label>
-        <select id="availableTimeSlots" class="form-control" required></select>
-    </div>
-
-    <input type="hidden" id="tableNumbers" name="TableNumbers" value="" />
-
-    <div class="form-group">
-        <label asp-for="SpecialRequests"></label>
-        <input asp-for="SpecialRequests" class="form-control" />
-    </div>
-
-    <br />
-
-    <button type="submit" class="btn btn-primary">Create Reservation</button>
+<div class="form-group">
+    <button type="submit" class="btn btn-primary" id="reserveButton" disabled>Make Reservation</button>
+</div>
 </form>
 
-
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const closedDays = @Html.Raw(JsonConvert.SerializeObject(ViewBag.ClosedDays)) || [];
-            const datePicker = flatpickr('#reservationDate', {
-                minDate: "today",
-                dateFormat: "Y-m-d",
-                disable: [
-                    function (date) {
-                        const dayOfWeek = date.getDay();
-                        return closedDays.includes(dayOfWeek);
-                    }
-                ],
-                onChange: fetchAvailableTimeSlots
-            });
+        $(document).ready(function () {
+            $('#reservationDate, #numberOfGuests').on('change', function () {
+                var date = $('#reservationDate').val();
+                var numberOfGuests = $('#numberOfGuests').val();
 
-            const numberOfGuestsInput = document.getElementById('numberOfGuests');
-            const availableTimeSlotsSelect = document.getElementById('availableTimeSlots');
-            const tableNumbersInput = document.getElementById('tableNumbers');
-            const reservationDateInput = document.getElementById('reservationDate'); // This will contain only the date
-            const noTimeSlotsMessage = document.getElementById('noTimeSlotsMessage');
+                if (date && numberOfGuests) {
+                    // Fetch all reservations for the selected date
+                    $.ajax({
+                        url: '@Url.Action("GetReservationsForDate", "Reservation")',
+                        data: { date: date },
+                        success: function (data) {
+                            var $timeSlots = $('#availableTimeSlots');
+                            $timeSlots.empty();
 
-            numberOfGuestsInput.addEventListener('change', fetchAvailableTimeSlots);
+                            var availableTimes = getAvailableTimeSlotsForDate(data, numberOfGuests);
 
-            function fetchAvailableTimeSlots(selectedDates, dateStr) {
-                const date = dateStr;
-                const numberOfGuests = parseInt(numberOfGuestsInput.value, 10);
-
-                if (!date || isNaN(numberOfGuests) || numberOfGuests <= 0) {
-                    return;
-                }
-
-                fetch(`/Reservation/GetAvailableTimeSlots?date=${date}&numberOfGuests=${numberOfGuests}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok.');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.message) {
-                            if (noTimeSlotsMessage) {
-                                noTimeSlotsMessage.innerText = data.message;
+                            if (availableTimes && availableTimes.length > 0) {
+                                $timeSlots.append('<option value="">Select a time slot</option>');
+                                availableTimes.forEach(function (time) {
+                                    $timeSlots.append('<option value="' + time.value + '">' + time.display + '</option>');
+                                });
+                                $('#reserveButton').prop('disabled', false);
+                            } else {
+                                $timeSlots.append('<option value="">No available time slots for the selected date</option>');
+                                $('#reserveButton').prop('disabled', true);
                             }
-                            availableTimeSlotsSelect.innerHTML = ''; // Clear options
-                        } else {
-                            if (noTimeSlotsMessage) {
-                                noTimeSlotsMessage.innerText = ''; // Clear any previous message
-                            }
-                            allTimeSlots = data;
-                            updateAvailableTimeSlots();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching available time slots:', error);
-                        if (noTimeSlotsMessage) {
-                            noTimeSlotsMessage.innerText = 'Error fetching available time slots';
+                        },
+                        error: function () {
+                            $('#availableTimeSlots').empty().append('<option value="">Failed to load available time slots.</option>');
+                            $('#reserveButton').prop('disabled', true);
                         }
                     });
-            }
-
-            function updateAvailableTimeSlots() {
-                availableTimeSlotsSelect.innerHTML = '';
-
-                allTimeSlots.forEach(slot => {
-                    const startTime = new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const endTime = new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const option = new Option(`${startTime} - ${endTime} (Table ${slot.tableViewModel.tableNumber})`, JSON.stringify(slot));
-                    availableTimeSlotsSelect.add(option);
-                });
-            }
-
-            // Before form submission, combine the selected date and time slot start time
-            document.getElementById('reservationForm').addEventListener('submit', function (e) {
-                const selectedDate = reservationDateInput.value; // The selected date
-                const selectedTimeSlot = JSON.parse(availableTimeSlotsSelect.value); // The selected time slot object
-                const startTime = new Date(selectedTimeSlot.startTime); // The start time of the time slot
-
-                // Combine date and time to form the full ReservationDate
-                const reservationDateTime = new Date(selectedDate);
-                reservationDateTime.setHours(startTime.getHours(), startTime.getMinutes());
-
-                // Update the ReservationDate field with the full date and time
-                reservationDateInput.value = reservationDateTime.toISOString();
-
-                // Update the hidden input with the selected table numbers
-                tableNumbersInput.value = selectedTimeSlot.tableViewModel.tableNumber;
+                }
             });
+
+            function getAvailableTimeSlotsForDate(reservations, numberOfGuests) {
+                // List of all possible times (e.g., every half-hour)
+                var allTimes = generateAllPossibleTimeSlots();
+                var bookedTimes = [];
+
+                // Loop through reservations and gather booked time slots
+                reservations.forEach(function (reservation) {
+                    reservation.timeSlots.forEach(function (slot) {
+                        bookedTimes.push({
+                            startTime: new Date(slot.startTime), // Convert to Date
+                            endTime: new Date(slot.endTime)      // Convert to Date
+                        });
+                    });
+                });
+
+                // Filter out booked times
+                var availableTimes = allTimes.filter(function (time) {
+                    return !bookedTimes.some(function (booked) {
+                        // Check for time overlap
+                        return (
+                            (time.startTime < booked.endTime && time.endTime > booked.startTime)
+                        );
+                    });
+                });
+
+                return availableTimes;
+            }
+
+            function generateAllPossibleTimeSlots() {
+                var timeSlots = [];
+                var startTime = moment("10:00", "HH:mm"); // Example start time
+                var endTime = moment("23:00", "HH:mm"); // Example end time
+
+                while (startTime < endTime) {
+                    timeSlots.push({
+                        value: startTime.format("HH:mm"),
+                        display: startTime.format("h:mm A"),
+                        startTime: startTime.clone().toDate(), // Ensure it’s a Date object
+                        endTime: startTime.clone().add(30, 'minutes').toDate() // Ensure it’s a Date object
+                    });
+                    startTime.add(30, 'minutes');
+                }
+
+                return timeSlots;
+            }
         });
-
     </script>
-
 }

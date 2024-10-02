@@ -155,60 +155,83 @@ namespace Reliable_Reservations_MVC.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAvailableTimeSlots(DateTime date, int numberOfGuests)
+        public async Task<IActionResult> GetReservationsForDate(DateTime date)
         {
-            if (numberOfGuests <= 0)
-            {
-                return BadRequest("Number of guests must be greater than 0.");
-            }
-
             try
             {
-                var timeSlotResponse = await _client.GetAsync($"{_baseUri}api/TimeSlot/daily/{date:yyyy-MM-dd}");
-                if (!timeSlotResponse.IsSuccessStatusCode)
+                var response = await _client.GetAsync($"{_baseUri}api/Reservation/date/{date:yyyy-MM-dd}");
+                if (response.IsSuccessStatusCode)
                 {
-                    return BadRequest("Failed to fetch available time slots");
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var reservations = JsonConvert.DeserializeObject<List<ReservationDetailsViewModel>>(jsonResponse);
+                    return Json(reservations);
                 }
-
-                var timeSlotJson = await timeSlotResponse.Content.ReadAsStringAsync();
-                var timeSlots = JsonConvert.DeserializeObject<List<TimeSlotViewModel>>(timeSlotJson);
-
-                var tableResponse = await _client.GetAsync($"{_baseUri}api/Table/all");
-                if (!tableResponse.IsSuccessStatusCode)
-                {
-                    return BadRequest("Failed to fetch tables");
-                }
-
-                var tableJson = await tableResponse.Content.ReadAsStringAsync();
-                var tables = JsonConvert.DeserializeObject<List<TableViewModel>>(tableJson);
-
-                var enrichedTimeSlots = timeSlots
-                    .Where(slot => slot.ReservationId == null)
-                    .Select(slot =>
-                    {
-                        var table = tables.FirstOrDefault(t => t.TableId == slot.TableId);
-                        if (table != null && table.SeatingCapacity >= numberOfGuests)
-                        {
-                            slot.TableViewModel = table;
-                        }
-                        return slot;
-                    })
-                    .Where(slot => slot.TableViewModel != null)
-                    .ToList();
-
-                if (!enrichedTimeSlots.Any())
-                {
-                    return Json(new { message = "No available time slots for the selected date" });
-                }
-
-                return Json(enrichedTimeSlots);
+                return BadRequest("Failed to fetch reservations.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching available time slots");
-                return BadRequest("An error occurred while fetching available time slots");
+                _logger.LogError(ex, "Error fetching reservations for the selected date.");
+                return BadRequest("An error occurred while fetching reservations.");
             }
         }
+
+
+
+        //[HttpGet] // Old one, used for fetching pre-created TimeSlots
+        //public async Task<IActionResult> GetAvailableTimeSlots(DateTime date, int numberOfGuests)
+        //{
+        //    if (numberOfGuests <= 0)
+        //    {
+        //        return BadRequest("Number of guests must be greater than 0.");
+        //    }
+
+        //    try
+        //    {
+        //        var timeSlotResponse = await _client.GetAsync($"{_baseUri}api/TimeSlot/daily/{date:yyyy-MM-dd}");
+        //        if (!timeSlotResponse.IsSuccessStatusCode)
+        //        {
+        //            return BadRequest("Failed to fetch available time slots");
+        //        }
+
+        //        var timeSlotJson = await timeSlotResponse.Content.ReadAsStringAsync();
+        //        var timeSlots = JsonConvert.DeserializeObject<List<TimeSlotViewModel>>(timeSlotJson);
+
+        //        var tableResponse = await _client.GetAsync($"{_baseUri}api/Table/all");
+        //        if (!tableResponse.IsSuccessStatusCode)
+        //        {
+        //            return BadRequest("Failed to fetch tables");
+        //        }
+
+        //        var tableJson = await tableResponse.Content.ReadAsStringAsync();
+        //        var tables = JsonConvert.DeserializeObject<List<TableViewModel>>(tableJson);
+
+        //        var enrichedTimeSlots = timeSlots
+        //            .Where(slot => slot.ReservationId == null)
+        //            .Select(slot =>
+        //            {
+        //                var table = tables.FirstOrDefault(t => t.TableId == slot.TableId);
+        //                if (table != null && table.SeatingCapacity >= numberOfGuests)
+        //                {
+        //                    slot.TableViewModel = table;
+        //                }
+        //                return slot;
+        //            })
+        //            .Where(slot => slot.TableViewModel != null)
+        //            .ToList();
+
+        //        if (!enrichedTimeSlots.Any())
+        //        {
+        //            return Json(new { message = "No available time slots for the selected date" });
+        //        }
+
+        //        return Json(enrichedTimeSlots);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error fetching available time slots");
+        //        return BadRequest("An error occurred while fetching available time slots");
+        //    }
+        //}
 
 
 
