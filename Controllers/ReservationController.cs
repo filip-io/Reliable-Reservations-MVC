@@ -176,6 +176,28 @@ namespace Reliable_Reservations_MVC.Controllers
         }
 
 
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableTables()
+        {
+            try
+            {
+                var response = await _client.GetAsync($"{_baseUri}api/Table/all");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var tables = JsonConvert.DeserializeObject<List<TableViewModel>>(jsonResponse);
+                    return Json(tables);
+                }
+                return BadRequest("Failed to fetch tables.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching tables.");
+                return BadRequest("An error occurred while fetching the tables.");
+            }
+        }
+
+
 
         //[HttpGet] // Old one, used for fetching pre-created TimeSlots
         //public async Task<IActionResult> GetAvailableTimeSlots(DateTime date, int numberOfGuests)
@@ -258,9 +280,16 @@ namespace Reliable_Reservations_MVC.Controllers
         }
 
 
-
+        [Authorize]
         public async Task<IActionResult> Details(int id)
         {
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
             var response = await _client.GetAsync($"{_baseUri}api/Reservation/{id}");
 
             if (response.IsSuccessStatusCode)
@@ -327,32 +356,19 @@ namespace Reliable_Reservations_MVC.Controllers
 
                 var json = await response.Content.ReadAsStringAsync();
 
-                var reservation = JsonConvert.DeserializeObject<ReservationEditViewModel>(json);
+                var reservation = JsonConvert.DeserializeObject<ReservationDetailsViewModel>(json);
 
-                var reservationEditViewModel = new ReservationEditViewModel
+                var reservationUpdateViewModel = new ReservationUpdateViewModel
                 {
                     ReservationId = id,
-                    Customer = new CustomerViewModel
-                    {
-                        CustomerId = reservation.Customer.CustomerId,
-                        FirstName = reservation.Customer.FirstName,
-                        LastName = reservation.Customer.LastName,
-                        PhoneNumber = reservation.Customer.PhoneNumber,
-                        Email = reservation.Customer.Email,
-                    },
+                    CustomerId = reservation.Customer.CustomerId,
                     NumberOfGuests = reservation.NumberOfGuests,
                     ReservationDate = reservation.ReservationDate,
-                    Tables = reservation.Tables.Select(t => new TableViewModel
-                    {
-                        TableId = t.TableId,
-                        TableNumber = t.TableNumber,
-                        SeatingCapacity = t.SeatingCapacity,
-                        Location = t.Location
-                    }).ToList(),
+                    TableNumbers = reservation.Tables.Select(t => t.TableNumber).ToList(),
                     SpecialRequests = reservation.SpecialRequests
                 };
 
-                return View(reservationEditViewModel);
+                return View(reservationUpdateViewModel);
             }
             catch (Exception ex)
             {
@@ -366,7 +382,7 @@ namespace Reliable_Reservations_MVC.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Edit(ReservationEditViewModel reservationEditViewModel)
+        public async Task<IActionResult> Edit(ReservationUpdateViewModel reservationEditViewModel)
         {
             // Post/Redirect/Get (PRG) Pattern with TempData
 
@@ -394,5 +410,21 @@ namespace Reliable_Reservations_MVC.Controllers
         }
 
 
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var token = HttpContext.Request.Cookies["jwtToken"];
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _client.DeleteAsync($"{_baseUri}api/Reservation/{id}");
+
+            return RedirectToAction("Index");
+        }
     }
 }

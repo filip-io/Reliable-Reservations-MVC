@@ -178,6 +178,7 @@ namespace Reliable_Reservations_MVC.Controllers
             return RedirectToAction("Index");
         }
 
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)

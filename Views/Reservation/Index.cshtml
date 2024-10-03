@@ -53,7 +53,7 @@ else
             </div>
             <div class="modal-footer">
                 <form id="deleteForm" method="post" asp-action="Delete" style="display:inline;">
-                    <input type="hidden" id="customerId" name="id" value="" />
+                    <input type="hidden" id="reservationId" name="id" value="" />
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -63,8 +63,8 @@ else
 </div>
 
 <script>
-    function showDeleteModal(customerId) {
-        $('#customerId').val(customerId);
+    function showDeleteModal(reservationId) {
+        $('#reservationId').val(reservationId);
         $('#deleteModal').modal('show');
     }
 </script>

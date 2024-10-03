@@ -1,145 +1,224 @@
-﻿@using Newtonsoft.Json
-@model Reliable_Reservations_MVC.Models.Reservation.ReservationEditViewModel
+﻿@model Reliable_Reservations_MVC.Models.Reservation.ReservationUpdateViewModel
 
 @{
-    var openingHours = ViewBag.OpeningHours as List<Reliable_Reservations_MVC.Models.OpeningHours.OpeningHoursViewModel> ?? new List<Reliable_Reservations_MVC.Models.OpeningHours.OpeningHoursViewModel>();
-    var closedDays = ViewBag.ClosedDays as List<string> ?? new List<string>();
+    ViewData["Title"] = "Update Reservation";
 }
 
-<h1>Update reservation</h1>
+<h2>Update Reservation</h2>
 
-<br />
-
-@if (!ViewData.ModelState.IsValid)
-{
-    <div class="alert alert-danger">
-        @Html.ValidationSummary(true, "Please fix the following errors:")
-    </div>
-}
-
-<form method="post" asp-action="edit" id="reservationForm">
-
+<form asp-action="Edit" method="post" id="reservationForm">
+    
     <input type="hidden" asp-for="ReservationId" />
-    <input type="hidden" asp-for="Customer.CustomerId" />
+    <input type="hidden" asp-for="CustomerId" />
 
-    <div class="form-group">
-        <label asp-for="NumberOfGuests"></label>
-        <input id="numberOfGuests" asp-for="NumberOfGuests" class="form-control" required min="1" max="15" />
+    <!-- Number of Guests -->
+    <div class="form-group mt-4">
+        <label asp-for="NumberOfGuests">Number of Guests</label>
+        <input asp-for="NumberOfGuests" type="number" id="numberOfGuests" class="form-control" min="1" max="15" required />
+        <span asp-validation-for="NumberOfGuests" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
-        <label asp-for="ReservationDate"></label>
-        <input id="reservationDate" asp-for="ReservationDate" class="form-control" required />
+    <!-- Select Date -->
+    <div class="form-group mt-4">
+        <label for="reservationDate">Select Date</label>
+        <input type="date" id="reservationDate" class="form-control" required />
     </div>
 
-    <div class="form-group">
-        <label>Available Time Slots</label>
-        <select id="availableTimeSlots" class="form-control" required></select>
+    <!-- Available Time Slots -->
+    <div class="form-group mt-4">
+        <label for="availableTimeSlots">Available Time Slots</label>
+        <select id="availableTimeSlots" class="form-control" required>
+            <option value="">Please select a date and number of guests before picking a time slot.</option>
+        </select>
     </div>
 
-    <input type="hidden" id="tableNumbers" name="TableNumbers" value="" />
-
-    <div class="form-group">
-        <label asp-for="SpecialRequests"></label>
-        <input asp-for="SpecialRequests" class="form-control" />
+    <!-- Available Tables -->
+    <div class="form-group mt-4">
+        <label for="availableTables">Available Tables</label>
+        <div id="availableTables" class="form-control">
+            <p>Please select a time slot before choosing tables.</p>
+        </div>
     </div>
 
-    <br />
+    <!-- Special Request -->
+    <div class="form-group mt-4">
+        <label asp-for="SpecialRequests">Special Request</label>
+        <textarea asp-for="SpecialRequests" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="SpecialRequests" class="text-danger"></span>
+    </div>
 
-    <button type="submit" class="btn btn-primary">Update Reservation</button>
+    <!-- Hidden input for ReservationDate -->
+    <input type="hidden" asp-for="ReservationDate" id="hiddenReservationDate" />
+
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary" id="updateButton">Update Reservation</button>
+    </div>
 </form>
 
-
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const closedDays = @Html.Raw(JsonConvert.SerializeObject(ViewBag.ClosedDays)) || [];
-            const datePicker = flatpickr('#reservationDate', {
-                minDate: "today",
-                dateFormat: "Y-m-d",
-                disable: [
-                    function (date) {
-                        const dayOfWeek = date.getDay();
-                        return closedDays.includes(dayOfWeek);
-                    }
-                ],
-                onChange: fetchAvailableTimeSlots
+        $(document).ready(function () {
+            $('#reservationDate, #numberOfGuests').on('change', function () {
+                var date = $('#reservationDate').val();
+                var numberOfGuests = $('#numberOfGuests').val();
+
+                if (date && numberOfGuests) {
+                    fetchAvailableTimeSlots(date, numberOfGuests);
+                }
             });
 
-            const numberOfGuestsInput = document.getElementById('numberOfGuests');
-            const availableTimeSlotsSelect = document.getElementById('availableTimeSlots');
-            const tableNumbersInput = document.getElementById('tableNumbers');
-            const reservationDateInput = document.getElementById('reservationDate'); // This will contain only the date
-            const noTimeSlotsMessage = document.getElementById('noTimeSlotsMessage');
-
-            numberOfGuestsInput.addEventListener('change', fetchAvailableTimeSlots);
-
-            function fetchAvailableTimeSlots(selectedDates, dateStr) {
-                const date = dateStr;
-                const numberOfGuests = parseInt(numberOfGuestsInput.value, 10);
-
-                if (!date || isNaN(numberOfGuests) || numberOfGuests <= 0) {
-                    return;
-                }
-
-                fetch(`/Reservation/GetAvailableTimeSlots?date=${date}&numberOfGuests=${numberOfGuests}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok.');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.message) {
-                            if (noTimeSlotsMessage) {
-                                noTimeSlotsMessage.innerText = data.message;
-                            }
-                            availableTimeSlotsSelect.innerHTML = ''; // Clear options
-                        } else {
-                            if (noTimeSlotsMessage) {
-                                noTimeSlotsMessage.innerText = ''; // Clear any previous message
-                            }
-                            allTimeSlots = data;
-                            updateAvailableTimeSlots();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching available time slots:', error);
-                        if (noTimeSlotsMessage) {
-                            noTimeSlotsMessage.innerText = 'Error fetching available time slots';
-                        }
-                    });
-            }
-
-            function updateAvailableTimeSlots() {
-                availableTimeSlotsSelect.innerHTML = '';
-
-                allTimeSlots.forEach(slot => {
-                    const startTime = new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const endTime = new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const option = new Option(`${startTime} - ${endTime} (Table ${slot.tableViewModel.tableNumber})`, JSON.stringify(slot));
-                    availableTimeSlotsSelect.add(option);
+            function fetchAvailableTimeSlots(date, numberOfGuests) {
+                $.ajax({
+                    url: '@Url.Action("GetReservationsForDate", "Reservation")',
+                    data: { date: date },
+                    success: function (reservations) {
+                        populateAvailableTimeSlots(reservations, numberOfGuests, date);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX request failed:', status, error);
+                        $('#availableTimeSlots').empty().append('<option value="">Failed to load available time slots.</option>');
+                        $('#availableTables').prop('disabled', true);
+                        $('#reserveButton').prop('disabled', true);
+                    }
                 });
             }
 
-            // Before form submission, combine the selected date and time slot start time
-            document.getElementById('reservationForm').addEventListener('submit', function (e) {
-                const selectedDate = reservationDateInput.value; // The selected date
-                const selectedTimeSlot = JSON.parse(availableTimeSlotsSelect.value); // The selected time slot object
-                const startTime = new Date(selectedTimeSlot.startTime); // The start time of the time slot
+            function populateAvailableTimeSlots(reservations, numberOfGuests, date) {
+                var $timeSlots = $('#availableTimeSlots');
+                $timeSlots.empty();
 
-                // Combine date and time to form the full ReservationDate
-                const reservationDateTime = new Date(selectedDate);
-                reservationDateTime.setHours(startTime.getHours(), startTime.getMinutes());
+                var availableTimes = getAvailableTimeSlotsForDate(reservations, numberOfGuests);
 
-                // Update the ReservationDate field with the full date and time
-                reservationDateInput.value = reservationDateTime.toISOString();
+                if (availableTimes && availableTimes.length > 0) {
+                    $timeSlots.append('<option value="">Select a time slot</option>');
+                    availableTimes.forEach(function (time) {
+                        $timeSlots.append('<option value="' + time.value + '">' + time.display + '</option>');
+                    });
+                    $('#availableTimeSlots').prop('disabled', false);
+                } else {
+                    $timeSlots.append('<option value="">No available time slots for the selected date</option>');
+                    $('#availableTimeSlots').prop('disabled', true);
+                }
 
-                // Update the hidden input with the selected table numbers
-                tableNumbersInput.value = selectedTimeSlot.tableViewModel.tableNumber;
+                $('#availableTimeSlots').off('change').on('change', function () {
+                    var selectedTime = $(this).val();
+                    if (selectedTime) {
+                        fetchAvailableTables(date, selectedTime, numberOfGuests);
+                        updateReservationDateTime(date, selectedTime);
+                    }
+                });
+            }
+
+            function updateReservationDateTime(date, time) {
+                var combinedDateTime = moment(date + 'T' + time).format('YYYY-MM-DDTHH:mm');
+                $('#hiddenReservationDate').val(combinedDateTime);
+            }
+
+            function getAvailableTimeSlotsForDate(reservations, numberOfGuests) {
+                var openingTime = moment('10:00', 'HH:mm');
+                var closingTime = moment('22:00', 'HH:mm');
+                var interval = 30;
+                var availableTimes = [];
+
+                for (var m = moment(openingTime); m.isBefore(closingTime); m.add(interval, 'minutes')) {
+                    availableTimes.push({
+                        value: m.format('HH:mm'),
+                        display: m.format('HH:mm'),
+                        available: true
+                    });
+                }
+
+                reservations.forEach(function (reservation) {
+                    reservation.timeSlots.forEach(function (slot) {
+                        var start = moment(slot.startTime);
+                        var end = moment(slot.endTime);
+
+                        availableTimes = availableTimes.map(function (time) {
+                            var slotTime = moment(time.value, 'HH:mm');
+                            if (slotTime.isBetween(start, end, null, '[]')) {
+                                time.available = false;
+                            }
+                            return time;
+                        });
+                    });
+                });
+
+                return availableTimes.filter(function (time) {
+                    return time.available;
+                });
+            }
+
+            function fetchAvailableTables(date, selectedTime, numberOfGuests) {
+                $.ajax({
+                    url: '@Url.Action("GetAvailableTables", "Reservation")',
+                    data: { date: date, time: selectedTime, guests: numberOfGuests },
+                    success: function (tables) {
+                        populateAvailableTables(tables, numberOfGuests);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX request failed:', status, error);
+                        $('#availableTables').empty().text('Failed to load tables.');
+                        $('#reserveButton').prop('disabled', true);
+                    }
+                });
+            }
+
+            function populateAvailableTables(tables, numberOfGuests) {
+                var $tablesDiv = $('#availableTables');
+                $tablesDiv.empty();
+
+                if (tables && tables.length > 0) {
+                    tables.forEach(function (table) {
+                        var $checkbox = $('<input>').attr({
+                            type: 'checkbox',
+                            name: 'TableNumbers',
+                            value: table.tableNumber,
+                            id: 'table-' + table.tableId
+                        });
+                        var $label = $('<label>').attr('for', 'table-' + table.tableId)
+                            .text('Table ' + table.tableNumber + ' (' + table.seatingCapacity + ' seats, ' + table.location + ')');
+                        $tablesDiv.append($checkbox).append($label).append('<br>');
+                    });
+
+                    $tablesDiv.find('input[type="checkbox"]').on('change', function () {
+                        checkIfEnoughTablesSelected(tables, numberOfGuests);
+                    });
+
+                    $tablesDiv.prop('disabled', false);
+                } else {
+                    $tablesDiv.text('No available tables for the selected time and number of guests.');
+                    $('#reserveButton').prop('disabled', true);
+                }
+            }
+
+            function checkIfEnoughTablesSelected(tables, numberOfGuests) {
+                var selectedTableIds = $('#availableTables input[type="checkbox"]:checked').map(function () {
+                    return parseInt($(this).val());
+                }).get();
+
+                var totalCapacity = tables
+                    .filter(function (table) {
+                        return selectedTableIds.includes(table.tableNumber);
+                    })
+                    .reduce(function (sum, table) {
+                        return sum + table.seatingCapacity;
+                    }, 0);
+
+                $('#reserveButton').prop('disabled', totalCapacity < numberOfGuests);
+            }
+
+            $('#reservationForm').on('submit', function (e) {
+                e.preventDefault();
+
+                if ($('#reserveButton').prop('disabled')) {
+                    alert('Please ensure all fields are filled correctly and sufficient tables are selected.');
+                    return;
+                }
+
+                // Form is valid, submit it
+                this.submit();
             });
         });
-
     </script>
-
 }
