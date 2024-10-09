@@ -44,7 +44,7 @@ This ASP.NET Core MVC application serves as the primary web frontend for Magnifi
 
 
 
-### 🛠️ Prerequisites
+## 🛠️ Prerequisites
 
 - .NET 6.0 SDK or later
 - Visual Studio 2022 or Visual Studio Code
