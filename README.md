@@ -23,6 +23,8 @@
 
 This ASP.NET Core MVC application serves as the primary web frontend for Magnificent Restaurant, offering both a public-facing website for customers and an admin interface for restaurant management.
 
+Combine with my [Reliable Reservations Client](https://github.com/filip-io/Reliable-Reservations-React) and [Reliable Reservation API system](https://github.com/filip-io/Reliable-Reservations)
+ for a complete restaurant management and customer engagement solution.
 
 &nbsp;
 
@@ -73,4 +75,4 @@ This ASP.NET Core MVC application serves as the primary web frontend for Magnifi
 
 ---
 
-Thank you for exploring the Reliable Reservations Web Portal! This web application works in conjunction with the Reliable Reservations Client and my backend API system to provide a complete restaurant management and customer engagement solution.
+Thank you for exploring the Reliable Reservations Web Portal! This web application works in conjunction with the [Reliable Reservations Client](https://github.com/filip-io/Reliable-Reservations-React) and my [Reliable Reservations API system](https://github.com/filip-io/Reliable-Reservations) to provide a complete restaurant management and customer engagement solution.
