@@ -12,6 +12,10 @@
   <img src="./wwwroot/img/cover.png" alt="API System Logo" width="75%">
 </div>
 
+<div align="center">
+  <img src="./wwwroot/img/menu.jpg" alt="Restaurant menu" width="75%">
+</div>
+
 &nbsp;
 
 
