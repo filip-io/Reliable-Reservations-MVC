@@ -6,6 +6,22 @@
 
 <h2>Make a Reservation</h2>
 
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <h4>Error</h4>
+        <ul>
+            @foreach (var modelState in ViewData.ModelState.Values)
+            {
+                foreach (var error in modelState.Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
+
 <form asp-action="Create" method="post" id="reservationForm">
     <!-- Customer ID -->
     <div class="form-group mt-4">
@@ -17,7 +33,7 @@
     <!-- Number of Guests -->
     <div class="form-group mt-4">
         <label asp-for="NumberOfGuests">Number of Guests</label>
-        <input asp-for="NumberOfGuests" type="number" id="numberOfGuests" class="form-control" min="1" max="15" />
+        <input asp-for="NumberOfGuests" type="number" id="numberOfGuests" class="form-control" min="1" max="8" />
         <span asp-validation-for="NumberOfGuests" class="text-danger"></span>
     </div>
 

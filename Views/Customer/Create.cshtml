@@ -1,11 +1,22 @@
 ﻿@model Reliable_Reservations_MVC.Models.Customer.CustomerCreateViewModel
 
 <h1>Register new customer</h1>
+
 <br />
+
 @if (!ViewData.ModelState.IsValid)
 {
     <div class="alert alert-danger">
-        @Html.ValidationSummary(true, "Please fix the following errors:")
+        <h4>Error</h4>
+        <ul>
+            @foreach (var modelState in ViewData.ModelState.Values)
+            {
+                foreach (var error in modelState.Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
     </div>
 }
 

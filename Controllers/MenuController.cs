@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Reliable_Reservations_MVC.Models.Menu;
+using Reliable_Reservations_MVC.Models.Reservation;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -24,12 +25,6 @@ namespace Reliable_Reservations_MVC.Controllers
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Explore our Menu";
-
-            if (TempData["SuccessMessage"] != null)
-            {
-                ViewBag.MenuItemCreatedMessage = TempData["SuccessMessage"].ToString();
-                TempData.Clear();
-            }
 
             try
             {
@@ -106,9 +101,12 @@ namespace Reliable_Reservations_MVC.Controllers
 
                 return RedirectToAction("Index");
             }
-
-            ModelState.AddModelError("", "Error creating menu item.");
-            return View(menuItemCreateViewModel);
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"Error creating reservation: {errorContent}");
+                return View(menuItemCreateViewModel);
+            }
         }
 
 

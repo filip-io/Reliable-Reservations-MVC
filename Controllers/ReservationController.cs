@@ -26,15 +26,10 @@ namespace Reliable_Reservations_MVC.Controllers
             _baseUri = configuration["ApiSettings:BaseUri"];
         }
 
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Reservations";
-
-            if (TempData["SuccessMessage"] != null)
-            {
-                ViewBag.MenuItemCreatedMessage = TempData["SuccessMessage"].ToString();
-                TempData.Clear();
-            }
 
             var token = HttpContext.Request.Cookies["jwtToken"];
 
@@ -75,6 +70,7 @@ namespace Reliable_Reservations_MVC.Controllers
         }
 
 
+        [Authorize]
         public async Task<IActionResult> Create()
         {
             ViewData["Title"] = "Make reservation";
@@ -124,7 +120,7 @@ namespace Reliable_Reservations_MVC.Controllers
 
 
 
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(ReservationCreateViewModel reservationCreateViewModel)
         {
@@ -148,12 +144,16 @@ namespace Reliable_Reservations_MVC.Controllers
 
                 return RedirectToAction("Index");
             }
-
-            ModelState.AddModelError("", "Error creating reservation.");
-            return View(reservationCreateViewModel);
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"Error creating reservation: {errorContent}");
+                return View(reservationCreateViewModel);
+            }
         }
 
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetReservationsForDate(DateTime date)
         {
@@ -175,7 +175,7 @@ namespace Reliable_Reservations_MVC.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAvailableTables()
         {
@@ -198,66 +198,7 @@ namespace Reliable_Reservations_MVC.Controllers
         }
 
 
-
-        //[HttpGet] // Old one, used for fetching pre-created TimeSlots
-        //public async Task<IActionResult> GetAvailableTimeSlots(DateTime date, int numberOfGuests)
-        //{
-        //    if (numberOfGuests <= 0)
-        //    {
-        //        return BadRequest("Number of guests must be greater than 0.");
-        //    }
-
-        //    try
-        //    {
-        //        var timeSlotResponse = await _client.GetAsync($"{_baseUri}api/TimeSlot/daily/{date:yyyy-MM-dd}");
-        //        if (!timeSlotResponse.IsSuccessStatusCode)
-        //        {
-        //            return BadRequest("Failed to fetch available time slots");
-        //        }
-
-        //        var timeSlotJson = await timeSlotResponse.Content.ReadAsStringAsync();
-        //        var timeSlots = JsonConvert.DeserializeObject<List<TimeSlotViewModel>>(timeSlotJson);
-
-        //        var tableResponse = await _client.GetAsync($"{_baseUri}api/Table/all");
-        //        if (!tableResponse.IsSuccessStatusCode)
-        //        {
-        //            return BadRequest("Failed to fetch tables");
-        //        }
-
-        //        var tableJson = await tableResponse.Content.ReadAsStringAsync();
-        //        var tables = JsonConvert.DeserializeObject<List<TableViewModel>>(tableJson);
-
-        //        var enrichedTimeSlots = timeSlots
-        //            .Where(slot => slot.ReservationId == null)
-        //            .Select(slot =>
-        //            {
-        //                var table = tables.FirstOrDefault(t => t.TableId == slot.TableId);
-        //                if (table != null && table.SeatingCapacity >= numberOfGuests)
-        //                {
-        //                    slot.TableViewModel = table;
-        //                }
-        //                return slot;
-        //            })
-        //            .Where(slot => slot.TableViewModel != null)
-        //            .ToList();
-
-        //        if (!enrichedTimeSlots.Any())
-        //        {
-        //            return Json(new { message = "No available time slots for the selected date" });
-        //        }
-
-        //        return Json(enrichedTimeSlots);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error fetching available time slots");
-        //        return BadRequest("An error occurred while fetching available time slots");
-        //    }
-        //}
-
-
-
-
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllTables()
         {

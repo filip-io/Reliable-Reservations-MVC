@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Reliable_Reservations_MVC.Models.Customer;
+using Reliable_Reservations_MVC.Models.Reservation;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -100,13 +101,14 @@ namespace Reliable_Reservations_MVC.Controllers
             if (statusCode == HttpStatusCode.Unauthorized)
             {
                 ModelState.AddModelError("", "Unauthorized access. Please check your credentials.");
+                return View(customerCreateViewModel);
             }
             else
             {
-                ModelState.AddModelError("", $"Error creating customer: {errorResponse}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"Error creating reservation: {errorContent}");
+                return View(customerCreateViewModel);
             }
-
-            return View(customerCreateViewModel);
         }
 
 

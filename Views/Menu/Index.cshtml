@@ -5,10 +5,10 @@
     <h1>@ViewData["Title"]</h1>
 </div>
 
-@if (ViewBag.MenuItemCreatedMessage != null)
+@if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success text-center">
-        @Html.Raw(ViewBag.MenuItemCreatedMessage)
+    <div class="alert alert-success">
+        @Html.Raw(@TempData["SuccessMessage"])
     </div>
 }
 
