@@ -11,6 +11,11 @@
     </div>
 }
 
+<a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>
+
+<br />
+<br />
+
 @if (ViewData["ResponseError"] != null)
 {
     <p class="alert alert-danger">@ViewData["ResponseError"]</p>
@@ -36,9 +41,6 @@ else
             </div>
         </div>
     }
-
-    <br />
-    <a asp-action="Create" asp-controller="Customer" class="btn btn-primary">New customer</a>
 }
 
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
