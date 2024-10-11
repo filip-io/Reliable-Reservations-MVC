@@ -2,19 +2,19 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Reliable_Reservations_MVC.Models.User;
+using Reliable_Reservations_MVC.Models.Admin;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
 namespace Reliable_Reservations_MVC.Controllers
 {
-    public class UserController : Controller
+    public class AdminController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly ILogger<UserController> _logger;
+        private readonly ILogger<AdminController> _logger;
         private readonly string? _baseUri;
-        public UserController(HttpClient httpClient, ILogger<UserController> logger, IConfiguration configuration)
+        public AdminController(HttpClient httpClient, ILogger<AdminController> logger, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _baseUri = configuration["ApiSettings:BaseUri"];
@@ -22,7 +22,7 @@ namespace Reliable_Reservations_MVC.Controllers
         }
 
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             return View();
         }
@@ -41,7 +41,7 @@ namespace Reliable_Reservations_MVC.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var response = await _httpClient.PostAsJsonAsync($"{_baseUri}api/User/login", loginViewModel);
+                    var response = await _httpClient.PostAsJsonAsync($"{_baseUri}api/Admin/login", loginViewModel);
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -75,7 +75,7 @@ namespace Reliable_Reservations_MVC.Controllers
                     });
 
                     ViewData["ResponseError"] = "Unable to reach the API. Please try again later.";
-                    return RedirectToAction("Index", "User");
+                    return RedirectToAction("Index", "Admin");
                 }
 
                 return View(loginViewModel);

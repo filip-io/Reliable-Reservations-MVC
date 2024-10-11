@@ -19,7 +19,7 @@ namespace Reliable_Reservations_MVC
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "/User/login";
+                    options.LoginPath = "/Admin/login";
                 });
 
             builder.Services.AddAuthorization();

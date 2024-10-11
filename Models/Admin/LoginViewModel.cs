@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Reliable_Reservations_MVC.Models.User
+namespace Reliable_Reservations_MVC.Models.Admin
 {
     public class LoginViewModel
     {
