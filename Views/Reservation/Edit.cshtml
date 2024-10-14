@@ -93,7 +93,7 @@
             initializeReservationForm({
                 allTables: @Html.Raw(ViewBag.TablesJson),
                 openingHours: @Html.Raw(ViewBag.OpeningHoursJson),
-                closedDays: @Html.Raw(ViewBag.ClosedDaysJson),
+                closedDays: @Html.Raw(Json.Serialize(ViewBag.ClosedDays)),
                 getReservationsUrl: '@Url.Action("GetReservationsForDate", "Reservation")',
                 isEditMode: true,
                 existingReservation: {

@@ -10,7 +10,11 @@
         specialRequestsInput: document.getElementById('SpecialRequests')
     };
 
+ 
+
     const { allTables, openingHours, closedDays, getReservationsUrl, isEditMode, existingReservation } = data;
+
+    console.log(closedDays);
 
     let currentReservations = [];
     let flatpickrInstance;
@@ -35,9 +39,15 @@
             dateFormat: "Y-m-d",
             minDate: "today",
             maxDate: maxDate,
+            locale: {
+                firstDayOfWeek: 1
+            },
             disable: [
                 function (date) {
-                    return closedDays.includes(date.toLocaleString('en-us', { weekday: 'long' }));
+                    // Get the day of the week as a number (0-6)
+                    const dayOfWeek = date.getDay();
+                    // Check if this day number is in the closedDays array
+                    return closedDays.includes(dayOfWeek);
                 }
             ],
             onChange: (selectedDates, dateStr) => {
