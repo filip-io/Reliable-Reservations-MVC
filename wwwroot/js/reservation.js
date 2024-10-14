@@ -10,11 +10,7 @@
         specialRequestsInput: document.getElementById('SpecialRequests')
     };
 
- 
-
     const { allTables, openingHours, closedDays, getReservationsUrl, isEditMode, existingReservation } = data;
-
-    console.log(closedDays);
 
     let currentReservations = [];
     let flatpickrInstance;
