@@ -3,7 +3,11 @@
     ViewData["Title"] = "Make a Reservation";
 }
 
+<div class="row justify-content-center">
+    <div class="col-md-6">
 <h2>Make a Reservation</h2>
+</div>
+</div>
 
 @if (TempData["SuccessMessage"] != null)
 {
@@ -29,6 +33,8 @@
 }
 
 <form asp-action="Create" asp-controller="Reservation" method="post" id="reservationForm">
+    <div class="row justify-content-center">
+    <div class="col-md-6">
     <!-- Customer ID -->
     <div class="form-group mt-4">
         <label asp-for="CustomerId">Customer ID</label>
@@ -44,7 +50,7 @@
     <!-- Select Date -->
     <div class="form-group mt-4">
         <label asp-for="ReservationDate">Select Date</label>
-        <input type="date" id="reservationDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+        <input type="date" id="reservationDate" class="form-control" placeholder="YYYY-MM-DD" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
         <span asp-validation-for="ReservationDate" class="text-danger"></span>
     </div>
     <!-- Available Time Slots -->
@@ -71,6 +77,8 @@
     <input type="hidden" asp-for="ReservationDate" id="hiddenReservationDate" />
     <div class="form-group mt-4">
         <button type="submit" class="btn btn-primary" id="reserveButton" disabled>Make Reservation</button>
+    </div>
+    </div>
     </div>
 </form>
 

@@ -307,30 +307,46 @@ namespace Reliable_Reservations_MVC.Controllers
 
             try
             {
-                var response = await _client.GetAsync($"{_baseUri}api/OpeningHours/all");
-                if (response.IsSuccessStatusCode)
+                // Fetch opening hours
+                var openingHoursResponse = await _client.GetAsync($"{_baseUri}api/OpeningHours/all");
+                if (openingHoursResponse.IsSuccessStatusCode)
                 {
-                    var openingHoursJson = await response.Content.ReadAsStringAsync();
-                    var openingHours = JsonConvert.DeserializeObject<List<OpeningHoursViewModel>>(openingHoursJson);
+                    var openingHoursJson = await openingHoursResponse.Content.ReadAsStringAsync();
+                    ViewBag.OpeningHoursJson = openingHoursJson;
 
-                    // Calculate days of the week that should be greyed out
-                    var closedDays = openingHours
+                    // Deserialize the JSON to get the closed days
+                    var openingHours = JsonConvert.DeserializeObject<List<OpeningHoursViewModel>>(openingHoursJson);
+                    var closedDays = openingHours?
                         .Where(oh => oh.IsClosed)
                         .Select(oh => oh.DayOfWeek)
                         .ToList();
 
-                    ViewBag.ClosedDays = closedDays;
-                    ViewBag.OpeningHours = openingHours; // Pass the full OpeningHours data to the view
+                    // Serialize the closedDays back to JSON (to be used in Reservation.js)
+                    var closedDaysJson = JsonConvert.SerializeObject(closedDays);
+                    ViewBag.ClosedDaysJson = closedDaysJson;
                 }
                 else
                 {
                     _logger.LogError("Failed to fetch opening hours.");
                     ViewData["ResponseError"] = "Failed to fetch opening hours. Please try again later.";
                 }
+
+                // Fetch tables
+                var tablesResponse = await _client.GetAsync($"{_baseUri}api/Table/all");
+                if (tablesResponse.IsSuccessStatusCode)
+                {
+                    var tablesJson = await tablesResponse.Content.ReadAsStringAsync();
+                    ViewBag.TablesJson = tablesJson;
+                }
+                else
+                {
+                    _logger.LogError("Failed to fetch tables.");
+                    ViewData["ResponseError"] = "Failed to fetch tables. Please try again later.";
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while fetching opening hours.");
+                _logger.LogError(ex, "An error occurred while fetching data for reservation editing.");
                 ViewData["ResponseError"] = "An error occurred. Please try again later.";
             }
 
@@ -381,7 +397,7 @@ namespace Reliable_Reservations_MVC.Controllers
                 var updatedReservation = JsonConvert.DeserializeObject<ReservationDetailsViewModel>(jsonResponse);
 
                 TempData["SuccessMessage"] =
-                    $"Successfully created new reservation for " +
+                    $"Successfully updated reservation for " +
                     $"{updatedReservation?.Customer?.FirstName} " +
                     $"{updatedReservation?.Customer?.LastName} " +
                     $"with ID: {updatedReservation?.ReservationId}";

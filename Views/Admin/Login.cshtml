@@ -14,19 +14,25 @@
     </div>
 }
 
-<form asp-action="Login" method="post">
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control"/>
-        <span asp-validation-for="Email" class="text-danger"></span>
+<form asp-action="Login" method="post" class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Email -->
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <br />
+            <!-- Password -->
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <br />
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
     </div>
-    <br />
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" class="form-control"/>
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <br />
-
-    <button type="submit" class="btn btn-primary">Login</button>
 </form>

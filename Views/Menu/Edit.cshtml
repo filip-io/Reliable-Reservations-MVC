@@ -1,63 +1,68 @@
 ﻿@model Reliable_Reservations_MVC.Models.Menu.MenuItemEditViewModel
 
-<h2>Edit menu item</h2>
 
-<form method="post" asp-action="Edit">
-    <div class="form-group">
-        <label asp-for="Name"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-    <br />
-    <div class="form-group">
-        <label asp-for="Description"></label>
-        <input asp-for="Description" class="form-control" />
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-    <br />
-    <div class="form-group">
-        <label asp-for="Price"></label>
-        <input asp-for="Price" class="form-control" type="number" step="0.01" />
-        <span asp-validation-for="Price" class="text-danger"></span>
-    </div>
-    <br />
-    <div class="form-group">
-        <label asp-for="Category"></label>
-        <select asp-for="Category" class="form-control">
-            <option value="">Select a category</option>
-            @foreach (var category in ViewBag.Categories)
-            {
-                <option value="@category.Text">@category.Text</option>
-            }
-        </select>
-        <span asp-validation-for="Category" class="text-danger"></span>
-    </div>
-    <br />
-    <div class="form-group">
-        <label asp-for="AvailabilityStatus"></label>
-        <select asp-for="AvailabilityStatus" class="form-control">
-            <option value="true">Available</option>
-            <option value="false">Not Available</option>
-        </select>
-        <span asp-validation-for="AvailabilityStatus" class="text-danger"></span>
-    </div>
-    <br />
-    <div class="form-group">
-        <label asp-for="IsPopular"></label>
-        <select asp-for="IsPopular" class="form-control">
-            <option value="false">Not yet!</option>
-            <option value="true">You're goddamn right it is!</option>
-        </select>
-        <span asp-validation-for="IsPopular" class="text-danger"></span>
-    </div>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2>Edit menu item</h2>
 
-    <input type="hidden" asp-for="MenuItemId" />
+        <form method="post" asp-action="Edit">
+            <div class="form-group">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Description"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Price"></label>
+                <input asp-for="Price" class="form-control" type="number" step="0.01" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="Category"></label>
+                <select asp-for="Category" class="form-control">
+                    <option value="">Select a category</option>
+                    @foreach (var category in ViewBag.Categories)
+                    {
+                        <option value="@category.Text">@category.Text</option>
+                    }
+                </select>
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="AvailabilityStatus"></label>
+                <select asp-for="AvailabilityStatus" class="form-control">
+                    <option value="true">Available</option>
+                    <option value="false">Not Available</option>
+                </select>
+                <span asp-validation-for="AvailabilityStatus" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="IsPopular"></label>
+                <select asp-for="IsPopular" class="form-control">
+                    <option value="false">Not yet!</option>
+                    <option value="true">You're goddamn right it is!</option>
+                </select>
+                <span asp-validation-for="IsPopular" class="text-danger"></span>
+            </div>
 
-    <br />
-    <button type="submit" class="btn btn-primary">Save changes</button>
+            <input type="hidden" asp-for="MenuItemId" />
 
-</form>
+            <br />
+            <button type="submit" class="btn btn-primary">Save changes</button>
 
-<br />
-<a href="@Url.Action("Index", "Menu")">Back to the Menu</a>
+        </form>
 
+        <br />
+        <a href="@Url.Action("Index", "Menu")">Back to the Menu</a>
+
+    </div>
+</div>
