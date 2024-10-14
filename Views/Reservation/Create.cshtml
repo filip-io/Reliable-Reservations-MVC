@@ -78,11 +78,13 @@
     <script src="~/js/reservation.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
+        // Pass required data to reservation.js and initialize the form
         document.addEventListener('DOMContentLoaded', function () {
             initializeReservationForm({
-                getReservationsUrl: '@Url.Action("GetReservationsForDate", "Reservation")',
-                getAllTablesUrl: '@Url.Action("GetAllTables", "Reservation")',
-                getOpeningHoursUrl: '@Url.Action("GetOpeningHours", "Reservation")'
+                allTables: @Html.Raw(ViewBag.TablesJson),
+                openingHours: @Html.Raw(ViewBag.OpeningHoursJson),
+                closedDays: @Html.Raw(ViewBag.ClosedDaysJson),
+                getReservationsUrl: '@Url.Action("GetReservationsForDate", "Reservation")' // reservation.js need to handle this since it's dependent on the selected date
             });
         });
     </script>

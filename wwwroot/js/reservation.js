@@ -1,230 +1,226 @@
-﻿function initializeReservationForm(urls) {
-    const form = document.getElementById('reservationForm');
-    const dateInput = document.getElementById('reservationDate');
-    const guestsInput = document.getElementById('numberOfGuests');
-    const timeSlotsSelect = document.getElementById('availableTimeSlots');
-    const tablesDiv = document.getElementById('availableTables');
-    const reserveButton = document.getElementById('reserveButton');
+﻿// Modern JavaScript using ES6+ features
+const initializeReservationForm = (data) => {
+    // DOM element selection using object property shorthand
+    const elements = {
+        form: document.getElementById('reservationForm'),
+        dateInput: document.getElementById('reservationDate'),
+        guestsInput: document.getElementById('numberOfGuests'),
+        timeSlotsSelect: document.getElementById('availableTimeSlots'),
+        tablesDiv: document.getElementById('availableTables'),
+        reserveButton: document.getElementById('reserveButton'),
+        hiddenReservationDate: document.getElementById('hiddenReservationDate')
+    };
 
-    let allTables = [];
-    let openingHours = [];
+    // Destructuring for cleaner access to data properties
+    const { allTables, openingHours, closedDays, getReservationsUrl } = data;
 
-    // Fetch opening hours when the page loads
-    fetchOpeningHours();
+    // State to store current reservations
+    let currentReservations = [];
 
-    [dateInput, guestsInput].forEach(input => {
-        input.addEventListener('change', function () {
-            const date = dateInput.value;
-            const numberOfGuests = guestsInput.value;
+    // Initialize form
+    const init = () => {
+        updateDateInputConstraints();
+        addEventListeners();
+    };
 
-            if (date && numberOfGuests) {
-                fetchReservationsAndTables(date, numberOfGuests);
-            }
-        });
-    });
-
-    function fetchOpeningHours() {
-        axios.get(urls.getOpeningHoursUrl)
-            .then(function (response) {
-                openingHours = response.data;
-                updateDateInputConstraints();
-            })
-            .catch(function (error) {
-                console.error('Failed to fetch opening hours:', error);
-            });
-    }
-
-    function updateDateInputConstraints() {
+    // Set up date input constraints
+    const updateDateInputConstraints = () => {
         const today = new Date();
-        const maxDate = new Date();
-        maxDate.setMonth(maxDate.getMonth() + 3); // Allow bookings up to 3 months in advance
+        const maxDate = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
 
-        dateInput.min = today.toISOString().split('T')[0];
-        dateInput.max = maxDate.toISOString().split('T')[0];
+        elements.dateInput.min = formatDateForInput(today);
+        elements.dateInput.max = formatDateForInput(maxDate);
+    };
 
-        // Disable closed days
-        dateInput.addEventListener('input', function () {
-            const selectedDate = new Date(this.value);
-            const dayOfWeek = selectedDate.toLocaleString('en-us', { weekday: 'long' });
-            const isClosedDay = openingHours.find(oh => oh.dayOfWeek === dayOfWeek)?.isClosed;
+    // Helper function to format date for input
+    const formatDateForInput = (date) => date.toISOString().split('T')[0];
 
-            if (isClosedDay) {
-                alert('The restaurant is closed on this day. Please select another date.');
-                this.value = '';
-            }
-        });
-    }
+    // Add event listeners
+    const addEventListeners = () => {
+        elements.dateInput.addEventListener('input', handleDateInput);
+        elements.dateInput.addEventListener('change', updateAvailability);
+        elements.guestsInput.addEventListener('change', updateAvailability);
+        elements.timeSlotsSelect.addEventListener('change', handleTimeSlotChange);
+        elements.form.addEventListener('submit', handleFormSubmit);
+    };
 
-    function fetchReservationsAndTables(date, numberOfGuests) {
-        Promise.all([
-            axios.get(urls.getReservationsUrl, { params: { date: date } }),
-            axios.get(urls.getAllTablesUrl)
-        ])
-            .then(function ([reservationsResponse, tablesResponse]) {
-                allTables = tablesResponse.data;
-                const reservations = reservationsResponse.data;
-                const availableTimeSlots = getAvailableTimeSlotsForDate(date, reservations, numberOfGuests);
-                populateAvailableTimeSlots(availableTimeSlots, numberOfGuests, date, reservations);
-            })
-            .catch(function (error) {
-                console.error('Axios request failed:', error);
-                timeSlotsSelect.innerHTML = '<option value="">Failed to load available time slots.</option>';
-                tablesDiv.innerHTML = 'Failed to load tables.';
-                reserveButton.disabled = true;
-            });
-    }
+    // Handle date input to check for closed days
+    const handleDateInput = (event) => {
+        const selectedDate = new Date(event.target.value);
+        const dayOfWeek = selectedDate.toLocaleString('en-us', { weekday: 'long' });
 
-    function getAvailableTimeSlotsForDate(date, reservations, numberOfGuests) {
+        if (closedDays.includes(dayOfWeek)) {
+            alert('The restaurant is closed on this day. Please select another date.');
+            event.target.value = '';
+        }
+    };
+
+    // Update availability based on date and guests
+    const updateAvailability = () => {
+        const { value: date } = elements.dateInput;
+        const { value: numberOfGuests } = elements.guestsInput;
+
+        if (date && numberOfGuests) {
+            fetchReservations(date, numberOfGuests);
+        }
+    };
+
+    // Fetch reservations from server
+    const fetchReservations = async (date, numberOfGuests) => {
+        try {
+            const response = await axios.get(getReservationsUrl, { params: { date } });
+            currentReservations = response.data;  // Store fetched reservations
+            handleReservationsResponse(date, numberOfGuests);
+        } catch (error) {
+            handleReservationsError(error);
+        }
+    };
+
+    // Handle successful reservations response
+    const handleReservationsResponse = (date, numberOfGuests) => {
+        const availableTimeSlots = getAvailableTimeSlots(date, numberOfGuests);
+        populateAvailableTimeSlots(availableTimeSlots, date, numberOfGuests);
+    };
+
+    // Handle reservations fetch error
+    const handleReservationsError = (error) => {
+        console.error('Failed to fetch reservations:', error);
+        elements.timeSlotsSelect.innerHTML = '<option value="">Failed to load available time slots.</option>';
+        elements.tablesDiv.innerHTML = 'Failed to load tables.';
+        elements.reserveButton.disabled = true;
+    };
+
+    // Get available time slots
+    const getAvailableTimeSlots = (date, numberOfGuests) => {
         const selectedDate = new Date(date);
         const dayOfWeek = selectedDate.toLocaleString('en-us', { weekday: 'long' });
         const dayOpeningHours = openingHours.find(oh => oh.dayOfWeek === dayOfWeek);
 
-        if (!dayOpeningHours || dayOpeningHours.isClosed) {
-            return [];
-        }
+        if (!dayOpeningHours || dayOpeningHours.isClosed) return [];
 
         const [openHour, openMinute] = dayOpeningHours.openTime.split(':').map(Number);
         const [closeHour, closeMinute] = dayOpeningHours.closeTime.split(':').map(Number);
 
-        let availableTimes = [];
-        const interval = 30; // 30 minutes interval
-
-        // Convert opening and closing times to minutes since midnight for easier comparison
         const openingMinutes = openHour * 60 + openMinute;
         const closingMinutes = closeHour * 60 + closeMinute;
 
-        for (let minutes = openingMinutes; minutes < closingMinutes - 120; minutes += interval) {
+        const numberOfSlots = Math.floor((closingMinutes - openingMinutes - 90) / 30) + 1;
+
+        return Array.from({ length: numberOfSlots }, (_, index) => {
+            const minutes = openingMinutes + index * 30;
             const hour = Math.floor(minutes / 60);
             const minute = minutes % 60;
-
             const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 
-            // Check if there are available tables for this time slot
-            const availableTables = getAvailableTables(date, timeString, numberOfGuests, reservations);
-            if (availableTables.length > 0) {
-                availableTimes.push({
-                    value: timeString,
-                    display: timeString,
-                    available: true
-                });
-            }
+            return {
+                value: timeString,
+                display: timeString,
+                available: getAvailableTables(date, timeString, numberOfGuests).length > 0
+            };
+        }).filter(time => time.available);
+    };
+
+    // Populate available time slots
+    const populateAvailableTimeSlots = (availableTimes, date, numberOfGuests) => {
+        elements.timeSlotsSelect.innerHTML = availableTimes.length
+            ? `<option value="">Select a time slot</option>
+               ${availableTimes.map(time => `<option value="${time.value}">${time.display}</option>`).join('')}`
+            : '<option value="">No available time slots for the selected date</option>';
+
+        elements.timeSlotsSelect.disabled = !availableTimes.length;
+    };
+
+    // Handle time slot change
+    const handleTimeSlotChange = () => {
+        const { value: date } = elements.dateInput;
+        const { value: numberOfGuests } = elements.guestsInput;
+        const { value: selectedTime } = elements.timeSlotsSelect;
+
+        if (selectedTime) {
+            const availableTables = getAvailableTables(date, selectedTime, numberOfGuests);
+            populateAvailableTables(availableTables, numberOfGuests);
+            updateReservationDateTime(date, selectedTime);
         }
+    };
 
-        return availableTimes;
-    }
-
-    function populateAvailableTimeSlots(availableTimes, numberOfGuests, date, reservations) {
-        timeSlotsSelect.innerHTML = '';
-
-        if (availableTimes && availableTimes.length > 0) {
-            timeSlotsSelect.innerHTML = '<option value="">Select a time slot</option>';
-            availableTimes.forEach(function (time) {
-                const option = document.createElement('option');
-                option.value = time.value;
-                option.textContent = time.display;
-                timeSlotsSelect.appendChild(option);
-            });
-            timeSlotsSelect.disabled = false;
-        } else {
-            timeSlotsSelect.innerHTML = '<option value="">No available time slots for the selected date</option>';
-            timeSlotsSelect.disabled = true;
-        }
-
-        timeSlotsSelect.addEventListener('change', function () {
-            const selectedTime = this.value;
-            if (selectedTime) {
-                const availableTables = getAvailableTables(date, selectedTime, numberOfGuests, reservations);
-                populateAvailableTables(availableTables, numberOfGuests);
-                console.log('Selected time:', selectedTime)
-                updateReservationDateTime(date, selectedTime);
-            }
-        });
-    }
-
-    function getAvailableTables(date, selectedTime, numberOfGuests, reservations) {
-        const [selectedHours, selectedMinutes] = selectedTime.split(':').map(Number);
-        const selectedDateTime = new Date(date);
-        selectedDateTime.setHours(selectedHours, selectedMinutes);
-
-        const occupiedTableIds = reservations
-            .filter(reservation => {
-                const reservationDate = new Date(reservation.reservationDate);
-                const timeDiff = Math.abs(reservationDate - selectedDateTime);
-                return timeDiff < 2 * 60 * 60 * 1000; // Within 2 hours
-            })
+    // Get available tables
+    const getAvailableTables = (date, selectedTime) => {
+        const selectedDateTime = new Date(`${date}T${selectedTime}`);
+        const occupiedTableIds = currentReservations
+            .filter(reservation => Math.abs(new Date(reservation.reservationDate) - selectedDateTime) < 2 * 60 * 60 * 1000)
             .flatMap(reservation => reservation.tables.map(table => table.tableId));
 
-        return allTables.filter(table =>
-            !occupiedTableIds.includes(table.tableId) && table.seatingCapacity >= numberOfGuests
-        );
-    }
+        return allTables.filter(table => !occupiedTableIds.includes(table.tableId));
+    };
 
-    function populateAvailableTables(tables, numberOfGuests) {
-        tablesDiv.innerHTML = '';
+    // Populate available tables
+    const populateAvailableTables = (tables, numberOfGuests) => {
+        if (tables.length) {
+            elements.tablesDiv.innerHTML = tables.map(table => `
+            <div>
+                <input type="checkbox" name="TableNumbers" value="${table.tableNumber}" id="table-${table.tableId}">
+                <label for="table-${table.tableId}">Table ${table.tableNumber} (${table.seatingCapacity} seats, ${table.location})</label>
+            </div>
+        `).join('');
 
-        if (tables && tables.length > 0) {
-            tables.forEach(function (table) {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.name = 'TableNumbers';
-                checkbox.value = table.tableNumber;
-                checkbox.id = 'table-' + table.tableId;
-
-                const label = document.createElement('label');
-                label.htmlFor = 'table-' + table.tableId;
-                label.textContent = `Table ${table.tableNumber} (${table.seatingCapacity} seats, ${table.location})`;
-
-                tablesDiv.appendChild(checkbox);
-                tablesDiv.appendChild(label);
-                tablesDiv.appendChild(document.createElement('br'));
-            });
-
-            tablesDiv.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            elements.tablesDiv.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', () => checkIfEnoughTablesSelected(tables, numberOfGuests));
             });
 
-            tablesDiv.disabled = false;
+            // Initial check to set button state
+            checkIfEnoughTablesSelected(tables, numberOfGuests);
         } else {
-            tablesDiv.textContent = 'No available tables for the selected time and number of guests.';
-            reserveButton.disabled = true;
+            elements.tablesDiv.textContent = 'No available tables for the selected time.';
+            elements.reserveButton.disabled = true;
         }
-    }
+    };
 
-    function checkIfEnoughTablesSelected(tables, numberOfGuests) {
-        const selectedTables = Array.from(tablesDiv.querySelectorAll('input[type="checkbox"]:checked'))
+    // Check if enough tables are selected
+    const checkIfEnoughTablesSelected = (tables, numberOfGuests) => {
+        const selectedTables = Array.from(elements.tablesDiv.querySelectorAll('input[type="checkbox"]:checked'))
             .map(checkbox => tables.find(table => table.tableNumber === parseInt(checkbox.value)));
 
         const totalSeats = selectedTables.reduce((sum, table) => sum + table.seatingCapacity, 0);
+        elements.reserveButton.disabled = totalSeats < numberOfGuests;
 
-        reserveButton.disabled = totalSeats < numberOfGuests;
-    }
+        // Remove any existing feedback
+        const existingFeedback = elements.tablesDiv.querySelector('.table-selection-feedback');
+        if (existingFeedback) existingFeedback.remove();
 
-    function updateReservationDateTime(date, time) {
-        const [hours, minutes] = time.split(':');
-        const reservationDateTime = new Date(date);
-        reservationDateTime.setHours(hours, minutes, 0, 0);
-        document.getElementById('hiddenReservationDate').value = reservationDateTime.toLocaleString();
-        console.log('Formatted date: ', document.getElementById('hiddenReservationDate').value);
-    }
+        // Provide feedback to the user
+        const feedbackMessage = totalSeats < numberOfGuests
+            ? `Please select more tables. Current capacity: ${totalSeats}/${numberOfGuests} needed.`
+            : `Sufficient seating selected: ${totalSeats}/${numberOfGuests} seats.`;
 
-        
+        elements.tablesDiv.insertAdjacentHTML('beforeend', `
+        <div class="table-selection-feedback" style="margin-top: 10px; margin-bottom: 0;">
+            <hr style="margin-bottom: 10px;">
+            <p style="margin: 0;">${feedbackMessage}</p>
+        </div>
+    `);
+    };
 
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
+    // Update reservation date and time
+    const updateReservationDateTime = (date, time) => {
+        const reservationDateTime = new Date(`${date}T${time}`);
+        elements.hiddenReservationDate.value = reservationDateTime.toLocaleString();
+    };
 
-        if (reserveButton.disabled) {
+    // Handle form submission
+    const handleFormSubmit = (event) => {
+        event.preventDefault();
+        if (elements.reserveButton.disabled) {
             alert('Please ensure all fields are filled correctly and sufficient tables are selected.');
             return;
         }
-
-        // Log form data for debugging, exactly as it is
-        const formData = new FormData(form);
+        // Log form data for debugging
+        const formData = new FormData(elements.form);
         for (let [key, value] of formData.entries()) {
             console.log(`${key}: ${value}`);
         }
+        elements.form.submit();
+    };
 
-
-        // Form is valid, submit it
-        this.submit();
-    });
-}
+    // Initialize the form
+    init();
+};
