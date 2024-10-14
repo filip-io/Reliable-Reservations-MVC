@@ -9,10 +9,14 @@ namespace Reliable_Reservations_MVC.Models.Reservation
     {
         public int CustomerId { get; set; }
 
+        [Required]
         public DateTime ReservationDate { get; set; }
 
+        [Required]
+        [Range(1, 8)]
         public int NumberOfGuests { get; set; }
 
+        [Required]
         public List<int> TableNumbers { get; set; } = new List<int>();
 
         public string SpecialRequests { get; set; } = "None";

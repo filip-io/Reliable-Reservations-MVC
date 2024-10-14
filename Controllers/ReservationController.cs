@@ -124,30 +124,39 @@ namespace Reliable_Reservations_MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(ReservationCreateViewModel reservationCreateViewModel)
         {
-            // Post/Redirect/Get (PRG) Pattern with TempData
-
-            var json = JsonConvert.SerializeObject(reservationCreateViewModel);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync($"{_baseUri}api/Reservation/create", content);
-
-            if (response.IsSuccessStatusCode)
+            if (!ModelState.IsValid)
             {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var createdReservation = JsonConvert.DeserializeObject<ReservationDetailsViewModel>(jsonResponse);
-
-                TempData["SuccessMessage"] =
-                    $"Successfully created new reservation for " +
-                    $"{createdReservation?.Customer?.FirstName} " +
-                    $"{createdReservation?.Customer?.LastName} " +
-                    $"with ID: {createdReservation?.ReservationId}";
-
-                return RedirectToAction("Index");
+                return View(reservationCreateViewModel);
             }
-            else
+
+            try
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                ModelState.AddModelError("", $"Error creating reservation: {errorContent}");
+                var json = JsonConvert.SerializeObject(reservationCreateViewModel);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                _logger.LogInformation($"Sending reservation request: {json}");
+
+                var response = await _client.PostAsync($"{_baseUri}api/Reservation/create", content);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation($"Received response: Status: {response.StatusCode}, Content: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var createdReservation = JsonConvert.DeserializeObject<ReservationDetailsViewModel>(responseContent);
+                    TempData["SuccessMessage"] = $"Successfully created new reservation for {createdReservation?.Customer?.FirstName} {createdReservation?.Customer?.LastName} with ID: {createdReservation?.ReservationId}";
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    ModelState.AddModelError("", $"Error creating reservation. Status code: {response.StatusCode}. Response: {responseContent}");
+                    return View(reservationCreateViewModel);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while creating the reservation");
+                ModelState.AddModelError("", $"An unexpected error occurred: {ex.Message}");
                 return View(reservationCreateViewModel);
             }
         }
@@ -216,7 +225,30 @@ namespace Reliable_Reservations_MVC.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching tables");
-                return BadRequest("An error occured while fetching tables");
+                return BadRequest("An error occurred while fetching tables");
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetOpeningHours()
+        {
+            try
+            {
+                var response = await _client.GetAsync($"{_baseUri}api/OpeningHours/all");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var openingHours = JsonConvert.DeserializeObject<List<OpeningHoursViewModel>>(json);
+                    return Json(openingHours);
+                }
+                return BadRequest("Failed to fetch opening hours");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching opening hours");
+                return BadRequest("An error occurred while fetching opening hours");
             }
         }
 
