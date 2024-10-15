@@ -192,7 +192,9 @@ namespace Reliable_Reservations_MVC.Controllers
                 _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _client.DeleteAsync($"{_baseUri}api/Customer/{id}");
+            await _client.DeleteAsync($"{_baseUri}api/Customer/{id}");
+
+            TempData["SuccessMessage"] = $"Successfully deleted customer with ID: <b>{id}</b>";
 
             return RedirectToAction("Index");
         }

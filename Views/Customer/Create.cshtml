@@ -24,9 +24,10 @@
     </div>
 }
 
-<form asp-action="Create" method="post">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+
             <div class="form-group">
                 <label asp-for="FirstName"></label>
                 <input asp-for="FirstName" class="form-control" />
@@ -51,8 +52,11 @@
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
             <br />
-            <br />
             <button type="submit" class="btn btn-primary">Create</button>
-        </div>
+            <br />
+        </form>
+        <br />
+        <a href="@Url.Action("Index", "Customer")">Back to Customer List</a>
     </div>
-</form>
+</div>
+

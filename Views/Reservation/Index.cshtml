@@ -10,7 +10,7 @@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">
-        @TempData["SuccessMessage"]
+        @Html.Raw(@TempData["SuccessMessage"])
     </div>
 }
 
@@ -34,7 +34,7 @@ else
 
                 <a asp-controller="Reservation" asp-action="Details" asp-route-id="@reservation.ReservationId" class="btn btn-info">Details</a>
                 <a asp-controller="Reservation" asp-action="Edit" asp-route-id="@reservation.ReservationId" class="btn btn-warning">Edit</a>
-                
+
                 <button class="btn btn-danger" onclick="showDeleteModal('@reservation.ReservationId')">Delete</button>
             </div>
         </div>
@@ -63,8 +63,9 @@ else
 </div>
 
 <script>
-    function showDeleteModal(reservationId) {
-        $('#reservationId').val(reservationId);
-        $('#deleteModal').modal('show');
-    }
+    const showDeleteModal = (reservationId) => {
+            document.getElementById('reservationId').value = reservationId;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+                };
 </script>

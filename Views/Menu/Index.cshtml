@@ -108,7 +108,7 @@ else
             </div>
             <div class="modal-footer">
                 <form id="deleteForm" method="post" asp-action="Delete" style="display:inline;">
-                    <input type="hidden" id="customerId" name="id" value="" />
+                    <input type="hidden" id="menuItemId" name="id" value="" />
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -118,78 +118,5 @@ else
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function () {
-            const menuItems = $('.menu-item');
-            const categoryGroups = $('.category-group');
-            const categorySelect = $('#categorySelect');
-            const minPriceSlider = $('#minPriceSlider');
-            const maxPriceSlider = $('#maxPriceSlider');
-            const minPriceValue = $('#minPriceValue');
-            const maxPriceValue = $('#maxPriceValue');
-            const filterButton = $('#filterButton');
-
-            // Set initial price range
-            const prices = Array.from(menuItems).map(item => parseFloat($(item).data('price')));
-            const minPrice = Math.floor(Math.min(...prices) * 100) / 100; // Round down to nearest cent
-            const maxPrice = Math.ceil(Math.max(...prices) * 100) / 100; // Round up to nearest cent
-
-            minPriceSlider.attr('min', minPrice);
-            minPriceSlider.attr('max', maxPrice);
-            minPriceSlider.val(minPrice);
-
-            maxPriceSlider.attr('min', minPrice);
-            maxPriceSlider.attr('max', maxPrice);
-            maxPriceSlider.val(maxPrice);
-
-            updatePriceLabels();
-
-            function updatePriceLabels() {
-                minPriceValue.text(parseFloat(minPriceSlider.val()).toFixed(2));
-                maxPriceValue.text(parseFloat(maxPriceSlider.val()).toFixed(2));
-            }
-
-            minPriceSlider.on('input', updatePriceLabels);
-            maxPriceSlider.on('input', updatePriceLabels);
-
-            function filterItems() {
-                const selectedCategory = categorySelect.val();
-                const minPrice = parseFloat(minPriceSlider.val());
-                const maxPrice = parseFloat(maxPriceSlider.val());
-
-                menuItems.hide();
-                categoryGroups.hide();
-
-                menuItems.each(function () {
-                    const item = $(this);
-                    const itemCategory = item.closest('.category-group').data('category');
-                    const itemPrice = parseFloat(item.data('price'));
-                    const categoryMatch = selectedCategory === '' || itemCategory === selectedCategory;
-                    const priceMatch = itemPrice >= minPrice && itemPrice <= maxPrice;
-
-                    if (categoryMatch && priceMatch) {
-                        item.show();
-                        item.closest('.category-group').show();
-                    }
-                });
-
-                // Show "No results" message if no items are visible
-                if ($('.menu-item:visible').length === 0) {
-                    $('#menuItemsContainer').html('<p class="text-center">No menu items match your filter criteria.</p>');
-                }
-            }
-
-            filterButton.on('click', filterItems);
-
-            // Initial display (show all items)
-            menuItems.show();
-            categoryGroups.show();
-        });
-
-        function showDeleteModal(customerId) {
-            $('#customerId').val(customerId);
-            $('#deleteModal').modal('show');
-        }
-
-    </script>
+    <script src="~/js/menuFilter.js"></script>
 }

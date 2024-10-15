@@ -65,8 +65,6 @@ Combine with my [Reliable Reservation API system](https://github.com/filip-io/Re
 
 - 🎨 Bootstrap
 
-- 📜 jQuery
-
 - 🗓️ Flatpickr (for date picking)
 
 - 🔌 Integration with RESTful API backend

@@ -1,13 +1,11 @@
 ﻿@model List<Reliable_Reservations_MVC.Models.Customer.CustomerViewModel>
 
-
-
 <h1>@ViewData["Title"]</h1>
 
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">
-        @TempData["SuccessMessage"]
+        @Html.Raw(@TempData["SuccessMessage"])
     </div>
 }
 
@@ -63,8 +61,9 @@ else
 </div>
 
 <script>
-    function showDeleteModal(customerId) {
-        $('#customerId').val(customerId);
-        $('#deleteModal').modal('show');
-    }
+    const showDeleteModal = (customerId) => {
+            document.getElementById('customerId').value = customerId;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+                    };
 </script>
